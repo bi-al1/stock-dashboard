@@ -1,14 +1,6 @@
 {
   "holdings": [
     {
-      "code": "7203",
-      "name": "トヨタ",
-      "shares": 100,
-      "avg_cost": 2500.0,
-      "purchase_date": "2026-02-19",
-      "note": ""
-    },
-    {
       "code": "1111",
       "name": "テスト株式会社",
       "shares": 500,
@@ -42,7 +34,16 @@
       "shares": 500,
       "price": 800.0,
       "profit": -225000.0
+    },
+    {
+      "date": "2026-02-19",
+      "code": "7203",
+      "name": "トヨタ",
+      "action": "sell",
+      "shares": 100,
+      "price": 3770.0,
+      "profit": 127000.0
     }
   ],
-  "updated_at": "2026-02-19T09:57:48.161354"
+  "updated_at": "2026-02-19T10:36:07.191204"
 }
