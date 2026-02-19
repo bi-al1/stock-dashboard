@@ -7,15 +7,7 @@
       "kabumart_rank": "C",
       "data_file": "data/stocks/402A.json",
       "url": "/stocks/detail.html?code=402A"
-    },
-    {
-      "code": "9984",
-      "name": "ソフトバンクグループ",
-      "analyzed_date": "2026-02-19",
-      "kabumart_rank": "B",
-      "data_file": "data/stocks/9984.json",
-      "url": "/stocks/detail.html?code=9984"
     }
   ],
-  "updated_at": "2026-02-19T08:18:01.363171"
+  "updated_at": "2026-02-19T08:26:24.953810"
 }
