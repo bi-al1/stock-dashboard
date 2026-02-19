@@ -23,7 +23,7 @@
       "added_date": "2026-02-19",
       "note": "モバイル事業黒字化期待",
       "kabumart_rank": "E",
-      "status": "pending",
+      "status": "interested",
       "per": -12.1,
       "per_history": [
         {
@@ -32,7 +32,7 @@
           "source": "kabumart"
         }
       ],
-      "updated_at": "2026-02-19T00:00:00.000000"
+      "updated_at": "2026-02-19T08:21:01.254636"
     },
     {
       "code": "2802",
@@ -52,5 +52,5 @@
       "updated_at": "2026-02-19T00:00:00.000000"
     }
   ],
-  "updated_at": "2026-02-19T08:20:59.142040"
+  "updated_at": "2026-02-19T08:21:01.254664"
 }
