@@ -77,14 +77,19 @@ def _gh_headers(token: str) -> dict:
     }
 
 def github_fetch_json(rel_path: str) -> dict:
-    """GitHub Contents API からJSONを取得して dict で返す。"""
+    """GitHub Contents API からJSONを取得して dict で返す。ファイルが存在しない場合は FileNotFoundError を投げる。"""
     token = os.environ.get("GITHUB_TOKEN")
     if not token:
         raise RuntimeError("GITHUB_TOKEN が環境変数に設定されていません")
     api_url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{rel_path}"
     req = urllib.request.Request(api_url, headers=_gh_headers(token))
-    with urllib.request.urlopen(req) as resp:
-        result = json.loads(resp.read())
+    try:
+        with urllib.request.urlopen(req) as resp:
+            result = json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            raise FileNotFoundError(f"GitHub上にファイルが存在しません: {rel_path}")
+        raise RuntimeError(f"GitHub API GET 失敗: {e.code} {e.reason}")
     return json.loads(base64.b64decode(result["content"]).decode("utf-8"))
 
 def github_update_json(rel_path: str, data: dict, message: str):
@@ -269,6 +274,8 @@ class WatchlistStatusRequest(BaseModel):
 def get_watchlist():
     try:
         return github_fetch_json(GH_WATCHLIST_PATH)
+    except FileNotFoundError:
+        return {"watchlist": [], "updated_at": datetime.now().isoformat()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -276,6 +283,8 @@ def get_watchlist():
 def add_watchlist(req: WatchlistAddRequest):
     try:
         data = github_fetch_json(GH_WATCHLIST_PATH)
+    except FileNotFoundError:
+        data = {"watchlist": []}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -356,6 +365,8 @@ class SellRequest(BaseModel):
 def get_portfolio():
     try:
         data = github_fetch_json(GH_PORTFOLIO_PATH)
+    except FileNotFoundError:
+        data = {"holdings": [], "trade_history": []}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -373,6 +384,8 @@ def get_portfolio():
 def buy_stock(req: BuyRequest):
     try:
         data = github_fetch_json(GH_PORTFOLIO_PATH)
+    except FileNotFoundError:
+        data = {"holdings": [], "trade_history": []}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -404,6 +417,8 @@ def buy_stock(req: BuyRequest):
 def sell_stock(req: SellRequest):
     try:
         data = github_fetch_json(GH_PORTFOLIO_PATH)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="ポートフォリオデータが存在しません")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -436,6 +451,8 @@ def sell_stock(req: SellRequest):
 def healthcheck():
     try:
         data = github_fetch_json(GH_PORTFOLIO_PATH)
+    except FileNotFoundError:
+        data = {"holdings": []}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -477,6 +494,8 @@ def get_stock(code: str):
 def get_manifest():
     try:
         return github_fetch_json(GH_MANIFEST_PATH)
+    except FileNotFoundError:
+        return {"stocks": [], "updated_at": datetime.now().isoformat()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
