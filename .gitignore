@@ -10,6 +10,3 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
-
-# data/ ディレクトリ（watchlist/portfolio は stok-analyzer リポジトリで一元管理）
-data/
