@@ -108,23 +108,28 @@ def github_update_json(rel_path: str, data: dict, message: str):
     api_url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{rel_path}"
     headers = _gh_headers(token)
 
-    # Step1: SHA 取得
+    # Step1: SHA 取得（ファイルが存在しない場合は新規作成扱い）
     req = urllib.request.Request(api_url, headers=headers)
+    sha = None
     try:
         with urllib.request.urlopen(req) as resp:
             current = json.loads(resp.read())
         sha = current["sha"]
     except urllib.error.HTTPError as e:
-        raise RuntimeError(f"GitHub API GET 失敗: {e.code} {e.reason}")
+        if e.code != 404:
+            raise RuntimeError(f"GitHub API GET 失敗: {e.code} {e.reason}")
+        # 404 = ファイル未存在 → sha なしで新規作成
 
-    # Step2: PUT
-    body = json.dumps({
+    # Step2: PUT（sha があれば更新、なければ新規作成）
+    put_payload = {
         "message": message,
         "content": base64.b64encode(new_content_bytes).decode(),
-        "sha": sha,
         "branch": GITHUB_BRANCH,
         "committer": {"name": "Render Bot", "email": "render-bot@kabumart"},
-    }).encode()
+    }
+    if sha:
+        put_payload["sha"] = sha
+    body = json.dumps(put_payload).encode()
     req = urllib.request.Request(api_url, data=body, headers=headers, method="PUT")
     try:
         with urllib.request.urlopen(req) as resp:
