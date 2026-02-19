@@ -451,6 +451,16 @@ def sell_stock(req: SellRequest):
     return {"status": "sold", "trade": trade}
 
 
+@app.post("/api/portfolio/reset")
+def reset_portfolio():
+    """ポートフォリオデータを完全リセット（holdings・trade_historyを空にする）"""
+    data = {"holdings": [], "trade_history": []}
+    try:
+        github_update_json(GH_PORTFOLIO_PATH, data, "portfolio: データをリセット")
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"ok": True, "status": "reset"}
+
 @app.delete("/api/portfolio/delete/{code}")
 def delete_holding(code: str):
     """入力ミス等で保有銘柄をポートフォリオから完全削除（損益記録なし）"""
