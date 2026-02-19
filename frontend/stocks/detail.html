@@ -207,8 +207,8 @@
 // ============================================================
 // データ取得 & レンダリング
 // ============================================================
-// 静的JSON（分析データ）→ GitHub Raw から直接取得（push直後に反映）
-const GITHUB_RAW = 'https://raw.githubusercontent.com/bi-al1/stock-dashboard/main';
+// 静的JSON（分析データ）→ stok-analyzer リポジトリの GitHub Raw から取得（push直後に反映）
+const GITHUB_RAW = 'https://raw.githubusercontent.com/bi-al1/stok-analyzer/master';
 const RENDER_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:8000'
   : 'https://stock-dashboard-rif1.onrender.com';
@@ -229,7 +229,7 @@ async function loadStock(code) {
     const ts = Date.now();
     // 分析JSON と watchlist.json を並行取得
     const [stockRes, wlRes] = await Promise.all([
-      fetch(`${GITHUB_RAW}/data/stocks/${code.toUpperCase()}.json?_=${ts}`),
+      fetch(`${GITHUB_RAW}/webapp/data/stocks/${code.toUpperCase()}.json?_=${ts}`),
       fetch(`${RENDER_BASE}/api/watchlist`),  // キャッシュなしで最新を取得
     ]);
     if (!stockRes.ok) throw new Error(`HTTP ${stockRes.status}`);

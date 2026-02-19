@@ -59,13 +59,20 @@ app.add_middleware(
 
 # ── GitHub API 設定 ────────────────────────────────────────
 GITHUB_OWNER  = "bi-al1"
+
+# watchlist / portfolio は stock-dashboard リポジトリで管理
 GITHUB_REPO   = "stock-dashboard"
 GITHUB_BRANCH = "main"
+
+# 分析JSON / manifest は stok-analyzer リポジトリの webapp/ 以下で管理
+GITHUB_REPO_ANALYZER   = "stok-analyzer"
+GITHUB_BRANCH_ANALYZER = "master"
 
 # GitHub上の各JSONのパス（リポジトリルートからの相対パス）
 GH_WATCHLIST_PATH = "data/watchlist.json"
 GH_PORTFOLIO_PATH = "data/portfolio.json"
-GH_MANIFEST_PATH  = "manifest.json"
+GH_MANIFEST_PATH  = "webapp/manifest.json"        # stok-analyzer リポジトリ
+GH_STOCKS_DIR     = "webapp/data/stocks"           # stok-analyzer リポジトリ
 
 
 # ── GitHub API ユーティリティ ──────────────────────────────
@@ -76,12 +83,14 @@ def _gh_headers(token: str) -> dict:
         "Content-Type": "application/json",
     }
 
-def github_fetch_json(rel_path: str) -> dict:
+def github_fetch_json(rel_path: str, repo: str = None, branch: str = None) -> dict:
     """GitHub Contents API からJSONを取得して dict で返す。ファイルが存在しない場合は FileNotFoundError を投げる。"""
+    repo   = repo   or GITHUB_REPO
+    branch = branch or GITHUB_BRANCH
     token = os.environ.get("GITHUB_TOKEN")
     if not token:
         raise RuntimeError("GITHUB_TOKEN が環境変数に設定されていません")
-    api_url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{rel_path}"
+    api_url = f"https://api.github.com/repos/{GITHUB_OWNER}/{repo}/contents/{rel_path}?ref={branch}"
     req = urllib.request.Request(api_url, headers=_gh_headers(token))
     try:
         with urllib.request.urlopen(req) as resp:
@@ -92,12 +101,14 @@ def github_fetch_json(rel_path: str) -> dict:
         raise RuntimeError(f"GitHub API GET 失敗: {e.code} {e.reason}")
     return json.loads(base64.b64decode(result["content"]).decode("utf-8"))
 
-def github_update_json(rel_path: str, data: dict, message: str):
+def github_update_json(rel_path: str, data: dict, message: str, repo: str = None, branch: str = None):
     """
     dict を JSON に変換してGitHub Contents API でコミットする。
     1. GET で SHA 取得
     2. PUT で新しい内容をコミット
     """
+    repo   = repo   or GITHUB_REPO
+    branch = branch or GITHUB_BRANCH
     token = os.environ.get("GITHUB_TOKEN")
     if not token:
         raise RuntimeError("GITHUB_TOKEN が環境変数に設定されていません")
@@ -105,7 +116,7 @@ def github_update_json(rel_path: str, data: dict, message: str):
     data["updated_at"] = datetime.now().isoformat()
     new_content_bytes = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
 
-    api_url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{rel_path}"
+    api_url = f"https://api.github.com/repos/{GITHUB_OWNER}/{repo}/contents/{rel_path}"
     headers = _gh_headers(token)
 
     # Step1: SHA 取得（ファイルが存在しない場合は新規作成扱い）
@@ -124,7 +135,7 @@ def github_update_json(rel_path: str, data: dict, message: str):
     put_payload = {
         "message": message,
         "content": base64.b64encode(new_content_bytes).decode(),
-        "branch": GITHUB_BRANCH,
+        "branch": branch,
         "committer": {"name": "Render Bot", "email": "render-bot@kabumart"},
     }
     if sha:
@@ -137,13 +148,15 @@ def github_update_json(rel_path: str, data: dict, message: str):
     except urllib.error.HTTPError as e:
         raise RuntimeError(f"GitHub API PUT 失敗: {e.code} {e.reason}")
 
-def github_delete_file(rel_path: str, message: str):
+def github_delete_file(rel_path: str, message: str, repo: str = None, branch: str = None):
     """GitHub Contents API でファイルを削除する。"""
+    repo   = repo   or GITHUB_REPO
+    branch = branch or GITHUB_BRANCH
     token = os.environ.get("GITHUB_TOKEN")
     if not token:
         raise RuntimeError("GITHUB_TOKEN が環境変数に設定されていません")
 
-    api_url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/contents/{rel_path}"
+    api_url = f"https://api.github.com/repos/{GITHUB_OWNER}/{repo}/contents/{rel_path}"
     headers = _gh_headers(token)
 
     # SHA 取得
@@ -161,7 +174,7 @@ def github_delete_file(rel_path: str, message: str):
     body = json.dumps({
         "message": message,
         "sha": sha,
-        "branch": GITHUB_BRANCH,
+        "branch": branch,
         "committer": {"name": "Render Bot", "email": "render-bot@kabumart"},
     }).encode()
     req = urllib.request.Request(api_url, data=body, headers=headers, method="DELETE")
@@ -513,9 +526,13 @@ def healthcheck():
 # ── 個別銘柄データ ─────────────────────────────────────────
 @app.get("/api/stocks/{code}/data")
 def get_stock_data(code: str):
-    """分析JSONデータを返す（detail.html 用）"""
+    """分析JSONデータを返す（detail.html 用）。stok-analyzer リポジトリから取得。"""
     try:
-        return github_fetch_json(f"data/stocks/{code.upper()}.json")
+        return github_fetch_json(
+            f"{GH_STOCKS_DIR}/{code.upper()}.json",
+            repo=GITHUB_REPO_ANALYZER,
+            branch=GITHUB_BRANCH_ANALYZER,
+        )
     except Exception:
         raise HTTPException(status_code=404, detail=f"{code} の分析データが見つかりません")
 
@@ -530,8 +547,13 @@ def get_stock(code: str):
 # ── manifest ──────────────────────────────────────────────
 @app.get("/api/manifest")
 def get_manifest():
+    """manifest.json を stok-analyzer リポジトリから取得"""
     try:
-        return github_fetch_json(GH_MANIFEST_PATH)
+        return github_fetch_json(
+            GH_MANIFEST_PATH,
+            repo=GITHUB_REPO_ANALYZER,
+            branch=GITHUB_BRANCH_ANALYZER,
+        )
     except FileNotFoundError:
         return {"stocks": [], "updated_at": datetime.now().isoformat()}
     except Exception as e:
@@ -541,22 +563,37 @@ def get_manifest():
 # ── 分析レポート削除 ──────────────────────────────────────
 @app.delete("/api/report/{code}")
 def delete_report(code: str):
-    """分析JSONをGitHubから削除し、manifest.jsonからも除外する。"""
-    rel_path = f"data/stocks/{code.upper()}.json"
+    """分析JSONをstok-analyzerリポジトリから削除し、manifest.jsonからも除外する。"""
+    rel_path = f"{GH_STOCKS_DIR}/{code.upper()}.json"
 
-    # Step1: 分析JSONを削除
+    # Step1: 分析JSONを削除（stok-analyzer リポジトリ）
     try:
-        github_delete_file(rel_path, f"report: {code} の分析レポートを削除")
+        github_delete_file(
+            rel_path,
+            f"report: {code} の分析レポートを削除",
+            repo=GITHUB_REPO_ANALYZER,
+            branch=GITHUB_BRANCH_ANALYZER,
+        )
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"{code} の分析レポートが見つかりません")
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    # Step2: manifest.json から除外
+    # Step2: manifest.json から除外（stok-analyzer リポジトリ）
     try:
-        manifest = github_fetch_json(GH_MANIFEST_PATH)
+        manifest = github_fetch_json(
+            GH_MANIFEST_PATH,
+            repo=GITHUB_REPO_ANALYZER,
+            branch=GITHUB_BRANCH_ANALYZER,
+        )
         manifest["stocks"] = [s for s in manifest.get("stocks", []) if s.get("code") != code.upper()]
-        github_update_json(GH_MANIFEST_PATH, manifest, f"manifest: {code} を除外")
+        github_update_json(
+            GH_MANIFEST_PATH,
+            manifest,
+            f"manifest: {code} を除外",
+            repo=GITHUB_REPO_ANALYZER,
+            branch=GITHUB_BRANCH_ANALYZER,
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"manifest更新失敗: {e}")
 
