@@ -6,7 +6,7 @@
       "added_date": "2026-02-18",
       "note": "KabuMartスコアC(3.1)、宇宙テック",
       "kabumart_rank": "C",
-      "status": "watching",
+      "status": "interested",
       "per": -9.1,
       "per_history": [
         {
@@ -15,7 +15,7 @@
           "source": "kabumart"
         }
       ],
-      "updated_at": "2026-02-18T20:24:48.671475"
+      "updated_at": "2026-02-19T08:21:08.690668"
     },
     {
       "code": "4755",
@@ -52,5 +52,5 @@
       "updated_at": "2026-02-19T00:00:00.000000"
     }
   ],
-  "updated_at": "2026-02-19T08:21:01.254664"
+  "updated_at": "2026-02-19T08:21:08.690689"
 }
