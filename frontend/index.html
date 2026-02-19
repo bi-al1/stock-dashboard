@@ -176,6 +176,8 @@
   .modal-btn-ok:disabled { opacity: 0.45; cursor: not-allowed; }
   .modal-btn-danger { padding: 8px 20px; border-radius: 8px; border: none; background: var(--red); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
   .modal-btn-danger:hover { opacity: 0.85; }
+  .modal-btn-gray { padding: 8px 20px; border-radius: 8px; border: none; background: rgba(136,146,164,0.2); color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
+  .modal-btn-gray:hover { background: rgba(136,146,164,0.32); }
   .modal-error { color: var(--red); font-size: 12px; margin-top: 8px; min-height: 16px; }
   /* 売却モーダルのモード選択タブ */
   .sell-mode-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
@@ -924,6 +926,7 @@ function onOpenSellModal(code, name, maxShares) {
     tabDelete.style.color = '#8892a4';
     sellForm.style.display  = '';
     deleteForm.style.display = 'none';
+    okBtn.removeAttribute('style'); // インラインスタイルをリセットしてクラスを有効に
     okBtn.className = 'modal-btn-danger';
     okBtn.textContent = '売却を記録する';
   };
@@ -933,8 +936,8 @@ function onOpenSellModal(code, name, maxShares) {
     tabSell.className   = 'sell-tab';
     sellForm.style.display  = 'none';
     deleteForm.style.display = '';
-    okBtn.className = 'modal-btn-cancel';
-    okBtn.style.cssText = 'padding:8px 20px;border-radius:8px;border:none;background:rgba(136,146,164,0.2);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;';
+    okBtn.removeAttribute('style');
+    okBtn.className = 'modal-btn-gray'; // グレー用クラスに切り替え
     okBtn.textContent = 'ポートフォリオから削除';
   };
 
