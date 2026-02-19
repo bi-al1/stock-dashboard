@@ -446,6 +446,29 @@ def sell_stock(req: SellRequest):
     return {"status": "sold", "trade": trade}
 
 
+@app.delete("/api/portfolio/delete/{code}")
+def delete_holding(code: str):
+    """入力ミス等で保有銘柄をポートフォリオから完全削除（損益記録なし）"""
+    try:
+        data = github_fetch_json(GH_PORTFOLIO_PATH)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="ポートフォリオデータが存在しません")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    code_upper = code.upper()
+    existing = next((h for h in data.get("holdings", []) if h["code"] == code_upper), None)
+    if not existing:
+        raise HTTPException(status_code=404, detail=f"{code_upper} はポートフォリオに見つかりません")
+
+    data["holdings"] = [h for h in data["holdings"] if h["code"] != code_upper]
+    try:
+        github_update_json(GH_PORTFOLIO_PATH, data, f"portfolio: {existing['name']}（{code_upper}）を削除（入力ミス）")
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"ok": True, "status": "deleted", "code": code_upper}
+
+
 # ── ヘルスチェック ─────────────────────────────────────────
 @app.get("/api/healthcheck")
 def healthcheck():

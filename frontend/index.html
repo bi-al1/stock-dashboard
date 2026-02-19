@@ -154,10 +154,34 @@
   .error-msg { color: var(--red); font-size: 12px; padding: 12px; background: rgba(239,68,68,0.08); border-radius: 8px; border: 1px solid rgba(239,68,68,0.2); }
   .empty-msg { color: var(--muted); font-size: 13px; text-align: center; padding: 24px; }
 
-  /* リフレッシュボタン */
-  .refresh-btn { background: rgba(74,158,255,0.15); color: var(--accent); border: 1px solid rgba(74,158,255,0.3); border-radius: 8px; padding: 6px 14px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
-  .refresh-btn:hover { background: rgba(74,158,255,0.25); }
-  .refresh-btn.loading-btn { opacity: 0.6; cursor: not-allowed; }
+  /* 追加・売却ボタン */
+  .add-btn { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .add-btn:hover { background: rgba(34,197,94,0.28); }
+  .sell-btn { background: none; border: 1px solid rgba(239,68,68,0.35); color: var(--red); border-radius: 6px; padding: 3px 10px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .sell-btn:hover { background: rgba(239,68,68,0.12); }
+
+  /* 入力モーダル */
+  .input-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+  .input-modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; max-width: 400px; width: 92%; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .input-modal h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 18px; }
+  .input-modal .field { margin-bottom: 14px; }
+  .input-modal label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+  .input-modal input { width: 100%; background: #0f1117; border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 14px; color: var(--text); outline: none; transition: border-color 0.15s; }
+  .input-modal input:focus { border-color: var(--accent); }
+  .input-modal .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .modal-btn-cancel { padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border); background: none; color: var(--muted); font-size: 13px; cursor: pointer; }
+  .modal-btn-cancel:hover { background: rgba(255,255,255,0.05); }
+  .modal-btn-ok { padding: 8px 20px; border-radius: 8px; border: none; background: var(--green); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .modal-btn-ok:hover { opacity: 0.85; }
+  .modal-btn-ok:disabled { opacity: 0.45; cursor: not-allowed; }
+  .modal-btn-danger { padding: 8px 20px; border-radius: 8px; border: none; background: var(--red); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .modal-btn-danger:hover { opacity: 0.85; }
+  .modal-error { color: var(--red); font-size: 12px; margin-top: 8px; min-height: 16px; }
+  /* 売却モーダルのモード選択タブ */
+  .sell-mode-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .sell-tab { flex: 1; padding: 7px; border-radius: 8px; border: 1px solid var(--border); background: none; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; text-align: center; }
+  .sell-tab.active-sell { background: rgba(239,68,68,0.15); color: var(--red); border-color: rgba(239,68,68,0.35); }
+  .sell-tab.active-delete { background: rgba(136,146,164,0.12); color: var(--muted); border-color: rgba(136,146,164,0.3); }
 
   /* フッター */
   .footer { text-align: center; padding: 20px; color: var(--muted); font-size: 11px; border-top: 1px solid var(--border); margin-top: 32px; line-height: 1.8; }
@@ -181,9 +205,7 @@
       <h1>📊 投資管理ダッシュボード</h1>
       <p id="lastUpdated" class="last-updated">読み込み中...</p>
     </div>
-    <div class="header-right">
-      <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">🔄 更新</button>
-    </div>
+    <div class="header-right"></div>
   </div>
 
   <!-- ポートフォリオサマリー -->
@@ -211,7 +233,10 @@
 
   <!-- 保有銘柄一覧 -->
   <div class="section">
-    <div class="section-title">保有銘柄一覧</div>
+    <div class="section-title" style="justify-content: space-between;">
+      <span>保有銘柄一覧</span>
+      <button class="add-btn" onclick="onOpenBuyModal()">＋ 買い追加</button>
+    </div>
     <div class="card" id="holdingsTable">
       <div class="loading"><div class="spinner"></div></div>
     </div>
@@ -287,10 +312,6 @@ function rankBadgeColor(rank) {
 let healthData = null;
 
 async function loadAll() {
-  const btn = document.getElementById('refreshBtn');
-  btn.classList.add('loading-btn');
-  btn.textContent = '⏳ 更新中...';
-
   document.getElementById('lastUpdated').textContent = `更新中... ${new Date().toLocaleString('ja-JP')}`;
 
   // manifest を先に読んでURLマップを構築してからウォッチリストを描画
@@ -302,15 +323,13 @@ async function loadAll() {
   ]);
 
   document.getElementById('lastUpdated').textContent = `最終更新: ${new Date().toLocaleString('ja-JP')}`;
-  btn.classList.remove('loading-btn');
-  btn.textContent = '🔄 更新';
 }
 
 // ── ポートフォリオ ─────────────────────────────────────────
 async function loadPortfolio() {
   const el = document.getElementById('portfolioSummary');
   try {
-    const data = await fetchGitHub('/portfolio-health/data/portfolio.json');
+    const data = await fetchRender('/api/portfolio');
     const holdings = data.holdings || [];
 
     // 取得原価ベースで合計（現在値はhealthcheckで後から更新）
@@ -346,7 +365,7 @@ async function loadPortfolio() {
 function renderHoldingsTable(holdings) {
   const el = document.getElementById('holdingsTable');
   if (!holdings.length) {
-    el.innerHTML = '<div class="empty-msg">📭 保有銘柄はありません。<br>「〇〇を△株買った」とClaudeに伝えると記録されます。</div>';
+    el.innerHTML = '<div class="empty-msg">📭 保有銘柄はありません。<br>右上の「＋ 買い追加」から記録できます。</div>';
     return;
   }
 
@@ -370,6 +389,7 @@ function renderHoldingsTable(holdings) {
         <td class="${gainClass(h.gain_loss_pct)}">${h.gain_loss_pct != null ? fmtPct(h.gain_loss_pct) : '—'}</td>
         <td>${evalAmt ? '¥' + fmt(evalAmt) : '—'}</td>
         <td>${alertBadge}</td>
+        <td><button class="sell-btn" onclick="onOpenSellModal('${h.code}','${h.name}',${h.shares})">売却</button></td>
       </tr>`;
   }).join('');
 
@@ -378,7 +398,7 @@ function renderHoldingsTable(holdings) {
       <thead>
         <tr>
           <th>銘柄</th><th>株数</th><th>取得単価</th><th>現在値</th>
-          <th>損益額</th><th>損益率</th><th>評価額</th><th>ステータス</th>
+          <th>損益額</th><th>損益率</th><th>評価額</th><th>ステータス</th><th></th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -777,6 +797,182 @@ async function onDeleteReport(code, name) {
       }
     }
   });
+}
+
+// ── 買い追加モーダル ──────────────────────────────────────
+function onOpenBuyModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'input-modal-overlay';
+  overlay.innerHTML = `
+    <div class="input-modal">
+      <h3>＋ 保有銘柄を追加</h3>
+      <div class="field">
+        <label>銘柄コード（例：7203）</label>
+        <input id="bm_code" type="text" placeholder="7203" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>企業名</label>
+        <input id="bm_name" type="text" placeholder="トヨタ自動車" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>購入株数</label>
+        <input id="bm_shares" type="number" min="1" placeholder="100">
+      </div>
+      <div class="field">
+        <label>取得単価（円）</label>
+        <input id="bm_price" type="number" min="0" step="0.01" placeholder="2500">
+      </div>
+      <div class="modal-error" id="bm_err"></div>
+      <div class="modal-btns">
+        <button class="modal-btn-cancel" id="bm_cancel">キャンセル</button>
+        <button class="modal-btn-ok" id="bm_ok">追加する</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.querySelector('#bm_cancel').onclick = close;
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+  overlay.querySelector('#bm_ok').onclick = async () => {
+    const code   = overlay.querySelector('#bm_code').value.trim().toUpperCase();
+    const name   = overlay.querySelector('#bm_name').value.trim();
+    const shares = parseInt(overlay.querySelector('#bm_shares').value, 10);
+    const price  = parseFloat(overlay.querySelector('#bm_price').value);
+    const errEl  = overlay.querySelector('#bm_err');
+    errEl.textContent = '';
+
+    if (!code)           { errEl.textContent = '銘柄コードを入力してください'; return; }
+    if (!name)           { errEl.textContent = '企業名を入力してください'; return; }
+    if (!shares || shares <= 0) { errEl.textContent = '株数を正しく入力してください'; return; }
+    if (isNaN(price) || price <= 0) { errEl.textContent = '取得単価を正しく入力してください'; return; }
+
+    const btn = overlay.querySelector('#bm_ok');
+    btn.disabled = true;
+    btn.textContent = '追加中...';
+
+    try {
+      const res = await fetch(`${RENDER_BASE}/api/portfolio/buy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, name, shares, price }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.detail ?? '追加に失敗しました');
+      close();
+      await loadPortfolio();
+    } catch(e) {
+      errEl.textContent = e.message;
+      btn.disabled = false;
+      btn.textContent = '追加する';
+    }
+  };
+}
+
+// ── 売却モーダル ──────────────────────────────────────────
+function onOpenSellModal(code, name, maxShares) {
+  const overlay = document.createElement('div');
+  overlay.className = 'input-modal-overlay';
+  overlay.innerHTML = `
+    <div class="input-modal">
+      <h3>📤 ${name}（${code}）</h3>
+      <div class="sell-mode-tabs">
+        <button class="sell-tab active-sell" id="sm_tab_sell">💴 売却として記録</button>
+        <button class="sell-tab" id="sm_tab_delete" style="color:#8892a4">🗑 入力ミスで削除</button>
+      </div>
+      <!-- 売却フォーム -->
+      <div id="sm_sell_form">
+        <div class="field">
+          <label>売却株数（保有: ${maxShares}株）</label>
+          <input id="sm_shares" type="number" min="1" max="${maxShares}" placeholder="${maxShares}" value="${maxShares}">
+        </div>
+        <div class="field">
+          <label>売却単価（円）</label>
+          <input id="sm_price" type="number" min="0" step="0.01" placeholder="0">
+        </div>
+      </div>
+      <!-- 削除確認 -->
+      <div id="sm_delete_form" style="display:none">
+        <p style="font-size:13px; color:#94a3c8; line-height:1.6; margin-bottom:8px;">
+          <strong>${name}</strong> の記録をポートフォリオから完全に削除します。<br>
+          損益は記録されません。
+        </p>
+      </div>
+      <div class="modal-error" id="sm_err"></div>
+      <div class="modal-btns">
+        <button class="modal-btn-cancel" id="sm_cancel">キャンセル</button>
+        <button class="modal-btn-danger" id="sm_ok">売却を記録する</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.querySelector('#sm_cancel').onclick = close;
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+  let mode = 'sell'; // 'sell' | 'delete'
+  const tabSell   = overlay.querySelector('#sm_tab_sell');
+  const tabDelete = overlay.querySelector('#sm_tab_delete');
+  const sellForm  = overlay.querySelector('#sm_sell_form');
+  const deleteForm = overlay.querySelector('#sm_delete_form');
+  const okBtn     = overlay.querySelector('#sm_ok');
+
+  tabSell.onclick = () => {
+    mode = 'sell';
+    tabSell.className   = 'sell-tab active-sell';
+    tabDelete.className = 'sell-tab';
+    tabDelete.style.color = '#8892a4';
+    sellForm.style.display  = '';
+    deleteForm.style.display = 'none';
+    okBtn.className = 'modal-btn-danger';
+    okBtn.textContent = '売却を記録する';
+  };
+  tabDelete.onclick = () => {
+    mode = 'delete';
+    tabDelete.className = 'sell-tab active-delete';
+    tabSell.className   = 'sell-tab';
+    sellForm.style.display  = 'none';
+    deleteForm.style.display = '';
+    okBtn.className = 'modal-btn-cancel';
+    okBtn.style.cssText = 'padding:8px 20px;border-radius:8px;border:none;background:rgba(136,146,164,0.2);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;';
+    okBtn.textContent = 'ポートフォリオから削除';
+  };
+
+  okBtn.onclick = async () => {
+    const errEl = overlay.querySelector('#sm_err');
+    errEl.textContent = '';
+    okBtn.disabled = true;
+
+    try {
+      if (mode === 'sell') {
+        const shares = parseInt(overlay.querySelector('#sm_shares').value, 10);
+        const price  = parseFloat(overlay.querySelector('#sm_price').value);
+        if (!shares || shares <= 0)       { errEl.textContent = '株数を正しく入力してください'; okBtn.disabled = false; return; }
+        if (shares > maxShares)           { errEl.textContent = `保有株数（${maxShares}株）を超えています`; okBtn.disabled = false; return; }
+        if (isNaN(price) || price <= 0)   { errEl.textContent = '売却単価を正しく入力してください'; okBtn.disabled = false; return; }
+
+        const res = await fetch(`${RENDER_BASE}/api/portfolio/sell`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, shares, price }),
+        });
+        const j = await res.json();
+        if (!res.ok) throw new Error(j.detail ?? '売却記録に失敗しました');
+      } else {
+        // 入力ミス削除: 全株売却として扱う（price=0は不可なのでAPI側で対応）
+        const res = await fetch(`${RENDER_BASE}/api/portfolio/delete/${code}`, { method: 'DELETE' });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          throw new Error(j.detail ?? '削除に失敗しました');
+        }
+      }
+      close();
+      await loadPortfolio();
+    } catch(e) {
+      errEl.textContent = e.message;
+      okBtn.disabled = false;
+    }
+  };
 }
 
 // ── 初回ロード ────────────────────────────────────────────
