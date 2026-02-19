@@ -50,7 +50,7 @@
   .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
 
   /* サマリーKPI */
-  .kpi-val { font-size: 28px; font-weight: 800; color: #fff; line-height: 1.1; }
+  .kpi-val { font-size: 22px; font-weight: 800; color: #fff; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .kpi-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
   .kpi-sub { font-size: 13px; font-weight: 600; margin-top: 6px; }
   .positive { color: var(--green); }
@@ -199,7 +199,7 @@
   /* レスポンシブ */
   @media (max-width: 768px) {
     .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr 1fr; }
-    .kpi-val { font-size: 22px; }
+    .kpi-val { font-size: 18px; }
     .health-layout { flex-direction: column; }
     .health-badges-grid { flex: none; width: 100%; }
   }
