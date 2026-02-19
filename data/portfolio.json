@@ -1,14 +1,5 @@
 {
-  "holdings": [
-    {
-      "code": "7203",
-      "name": "トヨタ",
-      "shares": 50,
-      "avg_cost": 2500.0,
-      "purchase_date": "2026-02-19",
-      "note": ""
-    }
-  ],
+  "holdings": [],
   "trade_history": [
     {
       "date": "2026-02-19",
@@ -43,7 +34,16 @@
       "shares": 50,
       "price": 2450.0,
       "profit": -2500.0
+    },
+    {
+      "date": "2026-02-19",
+      "code": "7203",
+      "name": "トヨタ",
+      "action": "sell",
+      "shares": 50,
+      "price": 2600.0,
+      "profit": 5000.0
     }
   ],
-  "updated_at": "2026-02-19T09:30:35.961358"
+  "updated_at": "2026-02-19T09:30:49.799128"
 }
