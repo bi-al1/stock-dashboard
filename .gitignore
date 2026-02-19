@@ -12,6 +12,5 @@ venv/
 Thumbs.db
 
 # データファイル（GitHub Contents APIで直接管理・ローカル不要）
-data/watchlist.json
-data/portfolio.json
 data/
+manifest.json
