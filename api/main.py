@@ -280,6 +280,7 @@ class WatchlistAddRequest(BaseModel):
     name: str
     note: str = ""
     kabumart_rank: str = ""
+    per: Optional[float] = None
 
 class WatchlistStatusRequest(BaseModel):
     code: str
@@ -307,14 +308,18 @@ def add_watchlist(req: WatchlistAddRequest):
         if item["code"] == req.code:
             raise HTTPException(status_code=409, detail=f"{req.name}（{req.code}）はすでに登録済みです")
 
-    data["watchlist"].append({
+    entry = {
         "code": req.code,
         "name": req.name,
         "added_date": datetime.now().strftime("%Y-%m-%d"),
         "note": req.note,
         "kabumart_rank": req.kabumart_rank,
-        "status": "watching",
-    })
+        "status": "archived",
+    }
+    if req.per is not None:
+        entry["per"] = req.per
+        entry["per_history"] = [{"date": datetime.now().strftime("%Y-%m-%d"), "per": req.per, "source": "analysis"}]
+    data["watchlist"].append(entry)
     try:
         github_update_json(GH_WATCHLIST_PATH, data, f"watchlist: {req.code} を追加")
     except RuntimeError as e:

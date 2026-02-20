@@ -102,7 +102,7 @@
   .watch-card:hover { border-color: var(--accent); }
   .watch-card.status-watching  { border-left: 3px solid var(--accent); }
   .watch-card.status-interested { border-left: 3px solid var(--yellow); }
-  .watch-card.status-pending   { border-left: 3px solid var(--muted); }
+  .watch-card.status-archived  { border-left: 3px solid var(--muted); }
   .watch-card .wname { font-weight: 700; color: #fff; font-size: 14px; margin-bottom: 4px; }
   .watch-card .wcode { font-size: 11px; color: var(--accent); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .watch-card .wnote { font-size: 11px; color: var(--muted); line-height: 1.5; margin-bottom: 8px; }
@@ -114,7 +114,7 @@
   .wstatus:hover { opacity: 0.8; }
   .wstatus-watching   { background: rgba(74,158,255,0.12); color: var(--accent); border: 1px solid rgba(74,158,255,0.25); }
   .wstatus-interested { background: rgba(245,158,11,0.12); color: var(--yellow); border: 1px solid rgba(245,158,11,0.25); }
-  .wstatus-pending    { background: rgba(136,146,164,0.12); color: var(--muted); border: 1px solid rgba(136,146,164,0.25); }
+  .wstatus-archived   { background: rgba(136,146,164,0.12); color: var(--muted); border: 1px solid rgba(136,146,164,0.25); }
   .wstatus-dropdown { position: absolute; top: calc(100% + 4px); left: 0; background: #1a1d2e; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; min-width: 130px; box-shadow: 0 6px 20px rgba(0,0,0,0.5); display: none; z-index: 300; }
   .wstatus-dropdown.open { display: block; }
   .wstatus-option { padding: 8px 12px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
@@ -134,26 +134,15 @@
   .manifest-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
   .manifest-card { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-decoration: none; color: var(--text); transition: border-color 0.2s, transform 0.1s; display: block; position: relative; }
   .manifest-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .manifest-card .mname { font-weight: 700; color: #fff; font-size: 14px; margin-bottom: 4px; padding-right: 24px; }
+  .manifest-card .mname { font-weight: 700; color: #fff; font-size: 14px; margin-bottom: 4px; }
   .manifest-card .mcode { font-size: 11px; color: var(--accent); margin-bottom: 6px; }
   .manifest-card .mdate { font-size: 10px; color: var(--muted); }
 
-  /* 削除ボタン（カード右上） */
-  .card-del-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--muted); font-size: 14px; cursor: pointer; padding: 2px 4px; border-radius: 4px; line-height: 1; opacity: 0.5; transition: opacity 0.15s, color 0.15s; }
-  .card-del-btn:hover { opacity: 1; color: var(--red); }
+  /* アーカイブボタン（ウォッチリストカード右上） */
+  .card-archive-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--muted); font-size: 14px; cursor: pointer; padding: 2px 4px; border-radius: 4px; line-height: 1; opacity: 0.5; transition: opacity 0.15s, color 0.15s; }
+  .card-archive-btn:hover { opacity: 1; color: var(--accent); }
   .watch-card { position: relative; }
   .watch-card .wname { padding-right: 24px; }
-
-  /* 削除確認モーダル */
-  .del-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-  .del-modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; max-width: 360px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-  .del-modal h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 10px; }
-  .del-modal p { font-size: 13px; color: #94a3c8; line-height: 1.6; margin-bottom: 20px; }
-  .del-modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
-  .del-btn-cancel { padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border); background: none; color: var(--muted); font-size: 13px; cursor: pointer; }
-  .del-btn-cancel:hover { background: rgba(255,255,255,0.05); }
-  .del-btn-ok { padding: 8px 18px; border-radius: 8px; border: none; background: var(--red); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
-  .del-btn-ok:hover { opacity: 0.85; }
 
   /* ローディング・エラー */
   .loading { text-align: center; padding: 40px; color: var(--muted); }
@@ -601,7 +590,7 @@ async function loadHealthCheck() {
 // ── ウォッチリスト ─────────────────────────────────────────
 // manifest の stocks を code → url で引けるようにキャッシュ
 let manifestUrlMap = {};
-// ウォッチリストのcodeセット（onDeleteReportで即時参照するためのキャッシュ）
+// ウォッチリストのcodeセット
 let watchlistCodesSet = new Set();
 
 async function loadWatchlist() {
@@ -610,10 +599,9 @@ async function loadWatchlist() {
   try {
     const data = await fetchRender('/api/watchlist');
     const rawList = data.watchlist || [];
-    // 削除済みcodeは除外してから描画
-    const list = rawList.filter(w => !_deletedCodes.has(w.code));
-    // onDeleteReportで即時参照できるようcodeをキャッシュ
-    watchlistCodesSet = new Set(list.map(w => w.code));
+    // アーカイブ済み・即時アーカイブ済みを除外して描画
+    const list = rawList.filter(w => w.status !== 'archived' && !_archivedCodes.has(w.code));
+    watchlistCodesSet = new Set(rawList.map(w => w.code));
     countEl.textContent = `（${list.length} 銘柄）`;
 
     if (!list.length) {
@@ -624,7 +612,7 @@ async function loadWatchlist() {
     const STATUS_MAP = {
       interested: { label: '💛 積極検討', cls: 'wstatus-interested' },
       watching:   { label: '👀 要観察',   cls: 'wstatus-watching'   },
-      pending:    { label: '⏳ 見送り中', cls: 'wstatus-pending'    },
+      archived:   { label: '📦 アーカイブ', cls: 'wstatus-archived' },
     };
 
     el.innerHTML = list.map(w => {
@@ -683,7 +671,7 @@ async function loadWatchlist() {
 
       return `
         <${tag} class="watch-card status-${w.status ?? 'watching'}" ${hrefAttr} data-code="${w.code}" style="${reportUrl ? 'text-decoration:none;' : ''}">
-          <button class="card-del-btn" title="ウォッチリストから削除" onclick="event.preventDefault();event.stopPropagation();onDeleteWatchlist('${w.code}','${w.name.replace(/'/g,"\\'")}',${!!reportUrl})">🗑️</button>
+          <button class="card-archive-btn" title="アーカイブ" onclick="event.preventDefault();event.stopPropagation();onArchiveWatchlist('${w.code}')">📦</button>
           <div class="wname">${w.name}</div>
           <div class="wcode">
             ${w.code}
@@ -726,14 +714,10 @@ async function loadManifest() {
 
     // 新しい順に並べ替え（削除済みcodeは除外）
     const sorted = [...stocks]
-      .filter(s => !_deletedCodes.has(s.code))
       .sort((a, b) => (b.analyzed_date ?? '').localeCompare(a.analyzed_date ?? ''));
     el.innerHTML = sorted.map(s => {
-      const inWatchlist = !!manifestUrlMap && Object.keys(manifestUrlMap).includes(s.code); // manifestUrlMapはwatchlistとは別
-      // ウォッチリストに登録済みかはwatchlist側で管理。ここではシンプルにコードだけ渡す
       return `
       <a class="manifest-card" href="${s.url ?? s.file}" target="_blank" data-code="${s.code}">
-        <button class="card-del-btn" title="分析レポートを削除" onclick="event.preventDefault();event.stopPropagation();onDeleteReport('${s.code}','${(s.name||'').replace(/'/g,"\\'")}')">🗑️</button>
         <div class="mname">${s.name}</div>
         <div class="mcode">${s.code} ${s.kabumart_rank ? `<span class="badge ${rankBadgeColor(s.kabumart_rank)}" style="font-size:10px;">${s.kabumart_rank}</span>` : ''}</div>
         <div class="mdate">📅 分析日: ${s.analyzed_date ?? '—'}</div>
@@ -748,7 +732,7 @@ async function loadManifest() {
 const IDX_STATUS_MAP = {
   interested: { label: '💛 積極検討', cls: 'wstatus-interested' },
   watching:   { label: '👀 要観察',   cls: 'wstatus-watching'   },
-  pending:    { label: '⏳ 見送り中', cls: 'wstatus-pending'    },
+  archived:   { label: '📦 アーカイブ', cls: 'wstatus-archived' },
 };
 
 function toggleWatchlistStatusDropdown(code) {
@@ -790,6 +774,14 @@ async function onWatchlistStatusClick(opt) {
     const json = await res.json();
     if (!json.ok) throw new Error(json.detail ?? json.error);
 
+    // アーカイブにしたらカードを非表示
+    if (newStatus === 'archived') {
+      const card = badgeEl.closest('.watch-card');
+      if (card) card.remove();
+      _archivedCodes.add(code);
+      return;
+    }
+
     // バッジ更新
     const info = IDX_STATUS_MAP[newStatus];
     badgeEl.textContent = info.label + ' ▾';
@@ -810,124 +802,27 @@ async function onWatchlistStatusClick(opt) {
   }
 }
 
-// ── 削除処理 ──────────────────────────────────────────────
-function showDelModal({ title, body, okLabel, onOk }) {
-  const overlay = document.createElement('div');
-  overlay.className = 'del-modal-overlay';
-  overlay.innerHTML = `
-    <div class="del-modal">
-      <h3>${title}</h3>
-      <p>${body}</p>
-      <div class="del-modal-btns">
-        <button class="del-btn-cancel">キャンセル</button>
-        <button class="del-btn-ok">${okLabel}</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  overlay.querySelector('.del-btn-cancel').onclick = () => overlay.remove();
-  // onOkにはoverlayを渡してチェックボックスをモーダル削除前に読める
-  overlay.querySelector('.del-btn-ok').onclick = () => { onOk(overlay); overlay.remove(); };
-}
+// ── アーカイブ処理 ──────────────────────────────────────────
+// 即時アーカイブ済みcodeセット（loadAll後にも再除去するためのキャッシュ）
+const _archivedCodes = new Set();
 
-// 削除済みcodeセット（loadAll後にも再除去するためのキャッシュ）
-const _deletedCodes = new Set();
+async function onArchiveWatchlist(code) {
+  // カードを即座に非表示
+  const card = document.querySelector(`.watch-card[data-code="${code}"]`);
+  if (card) card.remove();
+  _archivedCodes.add(code);
 
-// 指定codeのカードをDOMから即座に除去するヘルパー
-function removeCardByCode(code) {
-  _deletedCodes.add(code);
-  document.querySelectorAll(`[data-code="${code}"]`).forEach(el => el.remove());
-}
-
-// 削除処理中カウンター（連続削除時にloadAllが古いデータで上書きするのを防ぐ）
-let _deletingCount = 0;
-function _scheduleReload() {
-  // 全削除が完了したらloadAllを実行
-  // ただし _deletedCodes はクリアしない：
-  //   GitHub Raw CDN や Render の処理完了前にloadAllが走ることがあり、
-  //   その場合でも古いデータで復活しないようフィルタを維持し続ける必要があるため。
-  //   _deletedCodes は削除済み判定の永続キャッシュとして保持する。
-  setTimeout(async () => {
-    if (_deletingCount === 0) {
-      await loadAll();
-      // loadAll後にGitHubキャッシュ遅延で復活したカードを再除去
-      _deletedCodes.forEach(code => {
-        document.querySelectorAll(`[data-code="${code}"]`).forEach(el => el.remove());
-      });
-      // _deletedCodes.clear() はしない：次の loadAll でも引き続きフィルタするため
-    }
-  }, 300);
-}
-
-async function onDeleteWatchlist(code, name, hasReport) {
-  const body = hasReport
-    ? `<strong>${name}</strong> をウォッチリストから削除します。<br><br>` +
-      `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;">` +
-      `<input type="checkbox" id="delReportToo" style="width:15px;height:15px;"> 分析レポートも一緒に削除する</label>`
-    : `<strong>${name}</strong> をウォッチリストから削除します。`;
-
-  showDelModal({
-    title: '🗑️ ウォッチリストから削除',
-    body,
-    okLabel: '削除する',
-    onOk: async (overlay) => {
-      const alsoReport = hasReport && overlay.querySelector('#delReportToo')?.checked;
-      // ボタンを押した瞬間にカードを消す（API応答を待たない）
-      removeCardByCode(code);
-      _deletingCount++;
-      try {
-        const r1 = await fetch(`${RENDER_BASE}/api/watchlist/${code}`, { method: 'DELETE' });
-        const j1 = await r1.json();
-        if (!j1.ok) throw new Error(j1.detail ?? 'ウォッチリスト削除失敗');
-        if (alsoReport) {
-          const r2 = await fetch(`${RENDER_BASE}/api/report/${code}`, { method: 'DELETE' });
-          const j2 = await r2.json();
-          if (!j2.ok) throw new Error(j2.detail ?? 'レポート削除失敗');
-        }
-      } catch(e) {
-        alert(`削除失敗: ${e.message}`);
-      } finally {
-        _deletingCount--;
-      }
-    }
-  });
-}
-
-async function onDeleteReport(code, name) {
-  // manifestUrlMapにcodeがあればウォッチリスト登録済みと判断（API不要・即時）
-  // watchlistのcodeはloadWatchlist時にwatchlistCodesSetに保持する
-  const inWatchlist = watchlistCodesSet.has(code);
-
-  const body = inWatchlist
-    ? `<strong>${name}</strong> の分析レポートを削除します。<br><br>` +
-      `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;">` +
-      `<input type="checkbox" id="delWatchlistToo" style="width:15px;height:15px;"> ウォッチリストからも削除する</label>`
-    : `<strong>${name}</strong> の分析レポートを削除します。<br>この操作は取り消せません。`;
-
-  showDelModal({
-    title: '🗑️ 分析レポートを削除',
-    body,
-    okLabel: '削除する',
-    onOk: async (overlay) => {
-      const alsoWatchlist = inWatchlist && overlay.querySelector('#delWatchlistToo')?.checked;
-      // ボタンを押した瞬間にカードを消す（API応答を待たない）
-      removeCardByCode(code);
-      _deletingCount++;
-      try {
-        const r1 = await fetch(`${RENDER_BASE}/api/report/${code}`, { method: 'DELETE' });
-        const j1 = await r1.json();
-        if (!j1.ok) throw new Error(j1.detail ?? 'レポート削除失敗');
-        if (alsoWatchlist) {
-          const r2 = await fetch(`${RENDER_BASE}/api/watchlist/${code}`, { method: 'DELETE' });
-          const j2 = await r2.json();
-          if (!j2.ok) throw new Error(j2.detail ?? 'ウォッチリスト削除失敗');
-        }
-      } catch(e) {
-        alert(`削除失敗: ${e.message}`);
-      } finally {
-        _deletingCount--;
-      }
-    }
-  });
+  try {
+    const res = await fetch(`${RENDER_BASE}/api/watchlist/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, status: 'archived' }),
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.detail ?? json.error);
+  } catch(e) {
+    alert(`アーカイブ失敗: ${e.message}`);
+  }
 }
 
 // ── 買い追加モーダル ──────────────────────────────────────

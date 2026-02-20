@@ -121,7 +121,7 @@
   .status-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid; transition: all 0.2s; background: none; }
   .status-btn.st-watching   { color: var(--accent); border-color: rgba(74,158,255,0.4); background: rgba(74,158,255,0.1); }
   .status-btn.st-interested { color: var(--yellow); border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.1); }
-  .status-btn.st-pending    { color: var(--muted);  border-color: rgba(136,146,164,0.4); background: rgba(136,146,164,0.1); }
+  .status-btn.st-archived   { color: var(--muted);  border-color: rgba(136,146,164,0.4); background: rgba(136,146,164,0.1); }
   .status-btn:hover { opacity: 0.8; }
   .status-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: #1a1d2e; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; min-width: 150px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: none; z-index: 300; }
   .status-dropdown.open { display: block; }
@@ -132,25 +132,9 @@
   .status-toast { font-size: 12px; padding: 6px 12px; border-radius: 8px; font-weight: 600; }
   .status-toast.ok  { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
   .status-toast.err { background: rgba(239,68,68,0.15); color: var(--red);   border: 1px solid rgba(239,68,68,0.3); }
-  /* ウォッチリスト削除ボタン（back-bar内） */
-  .watchlist-del-btn { background: none; border: none; color: var(--muted); font-size: 15px; cursor: pointer; padding: 4px 6px; border-radius: 6px; opacity: 0.5; transition: opacity 0.15s, color 0.15s; line-height: 1; }
-  .watchlist-del-btn:hover { opacity: 1; color: var(--red); }
-
-  /* 削除確認モーダル */
-  .del-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-  .del-modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; max-width: 360px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-  .del-modal h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 10px; }
-  .del-modal p { font-size: 13px; color: #94a3c8; line-height: 1.6; margin-bottom: 20px; }
-  .del-modal-btns { display: flex; gap: 10px; justify-content: flex-end; }
-  .del-btn-cancel { padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border); background: none; color: var(--muted); font-size: 13px; cursor: pointer; }
-  .del-btn-cancel:hover { background: rgba(255,255,255,0.05); }
-  .del-btn-ok { padding: 8px 18px; border-radius: 8px; border: none; background: var(--red); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
-  .del-btn-ok:hover { opacity: 0.85; }
-
-  /* レポート削除ボタン */
-  .report-delete-bar { text-align: center; padding: 16px; margin-top: 8px; }
-  .report-delete-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; border-radius: 8px; border: 1px solid rgba(239,68,68,0.3); background: none; color: var(--red); font-size: 13px; cursor: pointer; transition: all 0.2s; opacity: 0.7; }
-  .report-delete-btn:hover { opacity: 1; background: rgba(239,68,68,0.08); }
+  /* アーカイブボタン（back-bar内） */
+  .watchlist-archive-btn { background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 6px; opacity: 0.6; transition: opacity 0.15s, color 0.15s; line-height: 1; }
+  .watchlist-archive-btn:hover { opacity: 1; color: var(--accent); }
 
   /* PER推移チャート */
   .per-chart-container { position: relative; height: 200px; }
@@ -600,13 +584,6 @@ ${priceHistory.length > 0 ? `
   </div>
 </div>
 
-<!-- レポート削除ボタン -->
-<div class="report-delete-bar">
-  <button class="report-delete-btn" id="reportDeleteBtn" onclick="showDeleteReportModal('${c.code}', '${c.name}')">
-    🗑️ 分析レポートを削除
-  </button>
-</div>
-
 <!-- フッター -->
 <div class="footer">
   <p>⚠️ このレポートは投資助言ではありません。掲載情報は公開情報に基づく分析であり、正確性・完全性を保証するものではありません。</p>
@@ -628,7 +605,7 @@ ${priceHistory.length > 0 ? `
     renderStatusSelector(wlEntry, c.code);
   } else {
     // 未登録 → back-barに追加ボタンを表示
-    renderAddButton(c);
+    renderAddButton(c, scores, fin);
   }
 
   // チャート描画（DOM 生成後）
@@ -642,26 +619,34 @@ ${priceHistory.length > 0 ? `
 // ============================================================
 // ウォッチリスト追加ボタン（back-bar内・未登録時）
 // ============================================================
-function renderAddButton(company) {
+function renderAddButton(company, scores, fin) {
   const container = document.getElementById('backBarStatus');
   const btn = document.createElement('button');
   btn.className = 'wl-add-btn';
   btn.textContent = '＋ ウォッチリストに追加';
   container.appendChild(btn);
 
+  // スコア情報: scores.total_rank / total_score を使う
+  const rank = scores?.total_rank ?? '';
+  const score = scores?.total_score ?? '';
+  const note = rank ? `総合スコア ${rank} (${score}/10)` : '';
+  const per = fin?.per ?? null;
+
   btn.onclick = async () => {
     btn.textContent = '⏳ 追加中...';
     btn.disabled = true;
     try {
+      const body = {
+        code: company.code,
+        name: company.name,
+        note,
+        kabumart_rank: rank,
+      };
+      if (per != null) body.per = per;
       const res = await fetch(`${RENDER_BASE}/api/watchlist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          code: company.code,
-          name: company.name,
-          note: `KabuMartスコア${company.kabumart_rank}(${company.kabumart_score})`,
-          kabumart_rank: company.kabumart_rank ?? '',
-        }),
+        body: JSON.stringify(body),
       });
       const json = await res.json();
       if (res.status === 409) {
@@ -676,7 +661,7 @@ function renderAddButton(company) {
       // ステータスセレクター+削除ボタンに切り替え
       setTimeout(() => {
         container.innerHTML = '';
-        renderStatusSelector({ status: 'watching' }, company.code);
+        renderStatusSelector({ status: 'archived' }, company.code);
       }, 800);
     } catch(e) {
       btn.textContent = `⚠️ 失敗`;
@@ -695,18 +680,16 @@ function renderAddButton(company) {
 const STATUS_MAP = {
   interested: { label: '💛 積極検討', cls: 'st-interested' },
   watching:   { label: '👀 要観察',   cls: 'st-watching'   },
-  pending:    { label: '⏳ 見送り中', cls: 'st-pending'    },
+  archived:   { label: '📦 アーカイブ', cls: 'st-archived'  },
 };
 
 function renderStatusSelector(wlEntry, code) {
   const container = document.getElementById('backBarStatus');
-  let currentStatus = wlEntry.status || 'watching';
+  let currentStatus = wlEntry.status || 'archived';
 
   // 既存のセレクターがあれば再利用（追加後の切り替え時）
   let sel = document.getElementById('statusSelector');
   let toastEl = document.getElementById('statusToast');
-  let delBtn = document.getElementById('watchlistDelBtn');
-
   if (!sel) {
     sel = document.createElement('div');
     sel.className = 'status-selector';
@@ -719,15 +702,6 @@ function renderStatusSelector(wlEntry, code) {
     toastEl.id = 'statusToast';
     toastEl.style.display = 'none';
     container.appendChild(toastEl);
-  }
-  if (!delBtn) {
-    delBtn = document.createElement('button');
-    delBtn.className = 'watchlist-del-btn';
-    delBtn.id = 'watchlistDelBtn';
-    delBtn.title = 'ウォッチリストから削除';
-    delBtn.textContent = '🗑️';
-    delBtn.onclick = () => showDeleteWatchlistModal(code);
-    container.appendChild(delBtn);
   }
 
   sel.innerHTML = buildSelectorHTML(currentStatus);
@@ -761,7 +735,7 @@ function renderStatusSelector(wlEntry, code) {
 }
 
 function buildSelectorHTML(current) {
-  const cur = STATUS_MAP[current] || STATUS_MAP.watching;
+  const cur = STATUS_MAP[current] || STATUS_MAP.archived;
   const options = Object.entries(STATUS_MAP).map(([val, info]) => `
     <div class="status-option${val === current ? ' active' : ''}" data-status="${val}">
       ${info.label}
@@ -797,72 +771,6 @@ async function updateStatus(code, newStatus, selEl, toastEl) {
   }
 }
 
-// ============================================================
-// 削除モーダル
-// ============================================================
-function showModal({ title, body, okLabel, onOk }) {
-  const overlay = document.createElement('div');
-  overlay.className = 'del-modal-overlay';
-  overlay.innerHTML = `
-    <div class="del-modal">
-      <h3>${title}</h3>
-      <p>${body}</p>
-      <div class="del-modal-btns">
-        <button class="del-btn-cancel">キャンセル</button>
-        <button class="del-btn-ok">${okLabel}</button>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  overlay.querySelector('.del-btn-cancel').onclick = () => overlay.remove();
-  overlay.querySelector('.del-btn-ok').onclick = () => { overlay.remove(); onOk(); };
-}
-
-async function showDeleteWatchlistModal(code) {
-  showModal({
-    title: '🗑️ ウォッチリストから削除',
-    body: 'この銘柄をウォッチリストから削除します。<br>分析レポートは残ります。よろしいですか？',
-    okLabel: '削除する',
-    onOk: async () => {
-      const toastEl = document.getElementById('statusToast');
-      toastEl.className = 'status-toast status-saving';
-      toastEl.textContent = '削除中...';
-      toastEl.style.display = '';
-      try {
-        const res = await fetch(`${RENDER_BASE}/api/watchlist/${code}`, { method: 'DELETE' });
-        const json = await res.json();
-        if (!json.ok) throw new Error(json.detail ?? 'エラー');
-        // back-barのステータスエリアをクリア
-        document.getElementById('backBarStatus').innerHTML = '';
-        toastEl.style.display = 'none';
-      } catch(e) {
-        toastEl.className = 'status-toast err';
-        toastEl.textContent = `⚠️ 削除失敗: ${e.message}`;
-        setTimeout(() => { toastEl.style.display = 'none'; }, 3000);
-      }
-    }
-  });
-}
-
-async function showDeleteReportModal(code, name) {
-  showModal({
-    title: '🗑️ 分析レポートを削除',
-    body: `<strong>${name}</strong> の分析レポートを削除します。<br>この操作は取り消せません。`,
-    okLabel: '削除する',
-    onOk: async () => {
-      const btn = document.getElementById('reportDeleteBtn');
-      if (btn) { btn.disabled = true; btn.textContent = '削除中...'; }
-      try {
-        const res = await fetch(`${RENDER_BASE}/api/report/${code}`, { method: 'DELETE' });
-        const json = await res.json();
-        if (!json.ok) throw new Error(json.detail ?? 'エラー');
-        window.location.href = '../index.html';
-      } catch(e) {
-        if (btn) { btn.disabled = false; btn.innerHTML = '🗑️ 分析レポートを削除'; }
-        alert(`削除失敗: ${e.message}`);
-      }
-    }
-  });
-}
 
 // ============================================================
 // レーダーチャート
