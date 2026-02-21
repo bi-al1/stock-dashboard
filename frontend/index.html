@@ -975,28 +975,28 @@
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 24px 20px;
-      max-width: 380px;
+      padding: 28px 24px;
+      max-width: 460px;
       width: 92%;
       box-shadow: 0 16px 48px rgba(0, 0, 0, .5)
     }
 
     .input-modal h3 {
-      font-size: 15px;
+      font-size: 18px;
       font-weight: 700;
       color: #fff;
-      margin-bottom: 16px
+      margin-bottom: 20px
     }
 
     .input-modal .field {
-      margin-bottom: 12px
+      margin-bottom: 16px
     }
 
     .input-modal label {
       display: block;
-      font-size: 10px;
+      font-size: 13px;
       color: var(--muted);
-      margin-bottom: 4px
+      margin-bottom: 6px
     }
 
     .input-modal input {
@@ -1004,8 +1004,8 @@
       background: #0f1117;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 13px;
+      padding: 10px 12px;
+      font-size: 15px;
       color: var(--text);
       outline: none;
       transition: border-color .15s
@@ -1017,18 +1017,18 @@
 
     .input-modal .modal-btns {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       justify-content: flex-end;
-      margin-top: 16px
+      margin-top: 20px
     }
 
     .modal-btn-cancel {
-      padding: 7px 16px;
+      padding: 10px 20px;
       border-radius: 8px;
       border: 1px solid var(--border);
       background: none;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 14px;
       cursor: pointer
     }
 
@@ -1037,12 +1037,12 @@
     }
 
     .modal-btn-ok {
-      padding: 7px 18px;
+      padding: 10px 22px;
       border-radius: 8px;
       border: none;
       background: var(--green);
       color: #fff;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 700;
       cursor: pointer
     }
@@ -1057,12 +1057,12 @@
     }
 
     .modal-btn-danger {
-      padding: 7px 18px;
+      padding: 10px 22px;
       border-radius: 8px;
       border: none;
       background: var(--red);
       color: #fff;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 700;
       cursor: pointer
     }
@@ -1072,12 +1072,12 @@
     }
 
     .modal-btn-gray {
-      padding: 7px 18px;
+      padding: 10px 22px;
       border-radius: 8px;
       border: none;
       background: rgba(136, 146, 164, .2);
       color: var(--muted);
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 700;
       cursor: pointer
     }
@@ -1088,9 +1088,9 @@
 
     .modal-error {
       color: var(--red);
-      font-size: 11px;
-      margin-top: 6px;
-      min-height: 14px
+      font-size: 13px;
+      margin-top: 8px;
+      min-height: 16px
     }
 
     .sell-mode-tabs {
@@ -1101,12 +1101,12 @@
 
     .sell-tab {
       flex: 1;
-      padding: 6px;
+      padding: 8px;
       border-radius: 8px;
       border: 1px solid var(--border);
       background: none;
       color: var(--muted);
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       text-align: center
@@ -1375,13 +1375,25 @@
 
     async function onDeleteTrade(btn) {
       const { tradeIdx: idx, tradeName: name, tradeAction: action, tradeShares: shares, tradeDate: date } = btn.dataset;
-      if (!confirm(`${date} の ${name} ${action}${shares}株 を履歴から削除しますか？\n\n※ 保有銘柄は残りの履歴から自動再計算されます。`)) return;
-      btn.disabled = true; btn.textContent = '...';
-      try {
-        const res = await fetch(`${RENDER_BASE}/api/portfolio/trade/${idx}`, { method: 'DELETE' });
-        if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.detail ?? '削除失敗'); }
-        await loadPortfolio();
-      } catch (e) { alert(`削除失敗: ${e.message}`); btn.disabled = false; btn.textContent = '削除'; }
+      const ov = document.createElement('div'); ov.className = 'input-modal-overlay';
+      ov.innerHTML = `<div class="input-modal"><h3>🗑️ 履歴を削除</h3>
+    <p style="font-size:15px;color:#c8cfe0;line-height:1.7;margin-bottom:8px"><strong>${date}</strong> の <strong>${name}</strong>（${action}${shares}株）を履歴から削除します。</p>
+    <p style="font-size:13px;color:var(--muted);line-height:1.6">※ 保有銘柄は残りの履歴から自動再計算されます。</p>
+    <div class="modal-error" id="dt_err"></div>
+    <div class="modal-btns"><button class="modal-btn-cancel" id="dt_cancel">キャンセル</button><button class="modal-btn-danger" id="dt_ok">削除する</button></div></div>`;
+      document.body.appendChild(ov);
+      const close = () => ov.remove();
+      ov.querySelector('#dt_cancel').onclick = close;
+      ov.addEventListener('click', e => { if (e.target === ov) close(); });
+      ov.querySelector('#dt_ok').onclick = async () => {
+        const okBtn = ov.querySelector('#dt_ok'); const err = ov.querySelector('#dt_err');
+        okBtn.disabled = true; okBtn.textContent = '削除中...';
+        try {
+          const res = await fetch(`${RENDER_BASE}/api/portfolio/trade/${idx}`, { method: 'DELETE' });
+          if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.detail ?? '削除失敗'); }
+          close(); await loadPortfolio();
+        } catch (e) { err.textContent = `削除失敗: ${e.message}`; okBtn.disabled = false; okBtn.textContent = '削除する'; }
+      };
     }
 
     // ── Health Check ──
