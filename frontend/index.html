@@ -564,10 +564,10 @@
     .wstatus {
       display: inline-flex;
       align-items: center;
-      gap: 2px;
-      padding: 1px 7px;
+      gap: 3px;
+      padding: 3px 10px;
       border-radius: 10px;
-      font-size: 9px;
+      font-size: 12px;
       font-weight: 700;
       cursor: pointer;
       user-select: none
@@ -597,13 +597,13 @@
 
     .wstatus-dropdown {
       position: absolute;
-      top: calc(100% + 3px);
+      top: calc(100% + 4px);
       left: 0;
       background: #1a1d2e;
       border: 1px solid var(--border);
       border-radius: 8px;
       overflow: hidden;
-      min-width: 120px;
+      min-width: 150px;
       box-shadow: 0 6px 20px rgba(0, 0, 0, .5);
       display: none;
       z-index: 300
@@ -614,8 +614,8 @@
     }
 
     .wstatus-option {
-      padding: 7px 10px;
-      font-size: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: background .15s;
@@ -1553,12 +1553,7 @@
             }
             let catchHtml = '';
             if (biz.catchcopy) catchHtml = `<div class="mcatch">${biz.catchcopy}</div>`;
-            const ringHtml = `<div class="mscore-ring" style="background:${scoreGrad(totalScore)}">
-              <div class="mscore-ring-inner"><span class="mscore-val">${totalScore}</span><span class="mscore-label">/10</span></div>
-            </div>`;
             const indHtml = comp.industry ? `<div class="mindustry">${comp.industry}</div>` : '';
-            const headerEl = card.querySelector('.mcard-header');
-            if (headerEl && !headerEl.querySelector('.mscore-ring')) headerEl.insertAdjacentHTML('beforeend', ringHtml);
             const loadingEl = card.querySelector('.mcard-loading');
             if (loadingEl) loadingEl.outerHTML = `<div class="mcard-detail">${indHtml}${catchHtml}${axesHtml ? `<div class="maxes-grid">${axesHtml}</div>` : ''}</div>`;
           }).catch(() => {
