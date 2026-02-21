@@ -895,8 +895,10 @@
       // Valuation table
       const valRows = (fin.valuation_table || []).map(row => {
         const cls = row.status === 'good' ? 'val-good' : row.status === 'warn' ? 'val-warn' : row.status === 'bad' ? 'val-bad' : '';
-        const badgeHtml = row.badge ? `<span class="badge badge-${row.badge_color || 'gray'}" style="font-size:9px">${row.badge}</span>` : '—';
-        return `<tr><td>${row.label}</td><td class="${cls}">${row.value}</td><td>${row.benchmark || '—'}</td><td>${badgeHtml}</td><td style="font-size:10px;color:var(--muted)">${row.note || ''}</td></tr>`;
+        const badgeHtml = row.badge ? `<span class="badge badge-${row.badge_color || 'gray'}" style="font-size:11px">${row.badge}</span>` : '—';
+        let valText = row.value;
+        if (row.label.includes('PER')) valText = latestPer != null ? `${latestPer}倍` : 'N/A';
+        return `<tr><td>${row.label}</td><td class="${cls}">${valText}</td><td>${row.benchmark || '—'}</td><td>${badgeHtml}</td><td style="font-size:13px;color:var(--muted)">${row.note || ''}</td></tr>`;
       }).join('');
 
       // Posi/Nega
