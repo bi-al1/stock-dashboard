@@ -567,6 +567,55 @@ def delete_holding(code: str):
         raise HTTPException(status_code=500, detail=str(e))
     return {"ok": True, "status": "deleted", "code": code_upper}
 
+@app.delete("/api/portfolio/trade/{index}")
+def delete_trade(index: int):
+    """売買履歴から指定インデックスの取引を削除し、holdingsを再計算する。"""
+    try:
+        data = github_fetch_json(GH_PORTFOLIO_PATH)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="ポートフォリオデータが存在しません")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    history = data.get("trade_history", [])
+    if index < 0 or index >= len(history):
+        raise HTTPException(status_code=404, detail=f"取引インデックス {index} が範囲外です（全{len(history)}件）")
+
+    deleted_trade = history.pop(index)
+
+    # 残りの取引からholdingsを再構築
+    holdings = {}
+    for t in history:
+        code = t["code"]
+        if t["action"] == "buy":
+            if code in holdings:
+                h = holdings[code]
+                total_cost = h["avg_cost"] * h["shares"] + t["price"] * t["shares"]
+                h["shares"] += t["shares"]
+                h["avg_cost"] = round(total_cost / h["shares"], 2)
+            else:
+                holdings[code] = {
+                    "code": code, "name": t["name"],
+                    "shares": t["shares"], "avg_cost": t["price"],
+                    "purchase_date": t["date"], "note": "",
+                }
+        elif t["action"] == "sell":
+            if code in holdings:
+                holdings[code]["shares"] -= t["shares"]
+                if holdings[code]["shares"] <= 0:
+                    del holdings[code]
+
+    data["holdings"] = list(holdings.values())
+    data["trade_history"] = history
+
+    desc = f"{deleted_trade['name']}（{deleted_trade['code']}）の{deleted_trade['action']}取引を削除"
+    try:
+        github_update_json(GH_PORTFOLIO_PATH, data, f"portfolio: {desc}")
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"ok": True, "status": "deleted", "deleted": deleted_trade}
+
+
 
 # ── ヘルスチェック ─────────────────────────────────────────
 @app.get("/api/healthcheck")

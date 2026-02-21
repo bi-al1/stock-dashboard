@@ -1,364 +1,1146 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>投資管理ダッシュボード</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-  :root {
-    --bg: #0f1117;
-    --card: #1a1d2e;
-    --card2: #22263a;
-    --accent: #4a9eff;
-    --accent2: #7c5cfc;
-    --green: #22c55e;
-    --red: #ef4444;
-    --yellow: #f59e0b;
-    --text: #e2e8f0;
-    --muted: #8892a4;
-    --border: #2d3252;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Hiragino Sans', 'Meiryo', sans-serif; font-size: 14px; line-height: 1.6; }
-  .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>投資管理ダッシュボード</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --card: #1a1d2e;
+      --card2: #22263a;
+      --accent: #4a9eff;
+      --accent2: #7c5cfc;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --text: #e2e8f0;
+      --muted: #8892a4;
+      --border: #2d3252;
+    }
 
-  /* ヘッダー */
-  .header-card { background: linear-gradient(135deg, #1a1d2e 0%, #0f1a3a 100%); border: 1px solid var(--border); border-radius: 16px; padding: 24px 28px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-  .header-left h1 { font-size: 22px; font-weight: 700; color: #fff; }
-  .header-left p { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .last-updated { font-size: 11px; color: var(--muted); }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  /* バッジ */
-  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-  .badge-blue { background: rgba(74,158,255,0.15); color: var(--accent); border: 1px solid rgba(74,158,255,0.3); }
-  .badge-green { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
-  .badge-red { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
-  .badge-orange { background: rgba(245,158,11,0.15); color: var(--yellow); border: 1px solid rgba(245,158,11,0.3); }
-  .badge-gray { background: rgba(136,146,164,0.15); color: var(--muted); border: 1px solid rgba(136,146,164,0.3); }
-  .badge-purple { background: rgba(124,92,252,0.15); color: #a78bfa; border: 1px solid rgba(124,92,252,0.3); }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Hiragino Sans', 'Meiryo', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
 
-  /* セクション */
-  .section { margin-bottom: 24px; }
-  .section-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-  .section-title::before { content: ''; display: block; width: 4px; height: 18px; background: var(--accent); border-radius: 2px; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-  .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
 
-  /* サマリーKPI */
-  .kpi-val { font-size: 22px; font-weight: 800; color: #fff; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .kpi-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .kpi-sub { font-size: 13px; font-weight: 600; margin-top: 6px; }
-  .positive { color: var(--green); }
-  .negative { color: var(--red); }
-  .neutral { color: var(--muted); }
+    /* ヘッダー */
+    .header-card {
+      background: linear-gradient(135deg, #1a1d2e 0%, #0f1a3a 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
 
-  /* ヘルスチェックサマリー */
-  .health-layout { display: flex; gap: 16px; align-items: flex-start; }
-  .health-badges-grid { flex: 0 0 220px; }
-  #healthDetailList { flex: 1; min-width: 0; }
-  .health-badge { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 12px; border-radius: 10px; gap: 6px; }
-  .health-badge .icon { font-size: 24px; }
-  .health-badge .count { font-size: 28px; font-weight: 800; }
-  .health-badge .hlabel { font-size: 11px; color: var(--muted); }
-  .health-green { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); }
-  .health-yellow { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
-  .health-orange { background: rgba(251,146,60,0.08); border: 1px solid rgba(251,146,60,0.2); }
-  .health-red { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); }
+    .header-left h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+    }
 
-  /* 保有銘柄テーブル */
-  .holdings-table { width: 100%; border-collapse: collapse; }
-  .holdings-table th { font-size: 11px; color: var(--muted); padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
-  .holdings-table td { padding: 10px 10px; border-bottom: 1px solid rgba(45,50,82,0.5); font-size: 13px; vertical-align: middle; }
-  .holdings-table tr:last-child td { border-bottom: none; }
-  .holdings-table tr:hover td { background: rgba(74,158,255,0.04); }
-  .stock-name { font-weight: 600; color: #fff; }
-  .stock-code { font-size: 11px; color: var(--muted); }
+    .header-left p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
 
-  /* 売買履歴テーブル */
-  .trade-action-buy  { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: rgba(74,158,255,0.12); color: var(--accent); border: 1px solid rgba(74,158,255,0.25); }
-  .trade-action-sell { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+    .header-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
 
-  /* ヘルスチェック詳細 */
-  .health-row { background: var(--card2); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-  .health-row:last-child { margin-bottom: 0; }
-  .health-row .name-block { flex: 1; min-width: 140px; }
-  .health-row .name-block .name { font-weight: 700; color: #fff; font-size: 14px; }
-  .health-row .name-block .code { font-size: 11px; color: var(--muted); }
-  .health-row .detail-block { flex: 2; min-width: 200px; }
-  .health-row .detail-block .reason { font-size: 12px; color: #94a3c8; margin-top: 4px; }
-  .health-row .metrics { display: flex; gap: 12px; flex-wrap: wrap; }
-  .metric-item { text-align: center; }
-  .metric-item .mval { font-size: 14px; font-weight: 700; color: #fff; }
-  .metric-item .mlabel { font-size: 10px; color: var(--muted); }
+    .last-updated {
+      font-size: 11px;
+      color: var(--muted);
+    }
 
-  /* ウォッチリスト */
-  .watchlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
-  .watch-card { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; transition: border-color 0.2s; }
-  .watch-card:hover { border-color: var(--accent); }
-  .watch-card.status-watching  { border-left: 3px solid var(--accent); }
-  .watch-card.status-interested { border-left: 3px solid var(--yellow); }
-  .watch-card.status-archived  { border-left: 3px solid var(--muted); }
-  .watch-card .wname { font-weight: 700; color: #fff; font-size: 14px; margin-bottom: 4px; }
-  .watch-card .wcode { font-size: 11px; color: var(--accent); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .watch-card .wnote { font-size: 11px; color: var(--muted); line-height: 1.5; margin-bottom: 8px; }
-  .watch-card .wmeta { font-size: 10px; color: var(--muted); }
-  .watch-card .wrank { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; background: rgba(124,92,252,0.15); color: #a78bfa; border: 1px solid rgba(124,92,252,0.3); }
-  /* ステータスセレクター（インライン） */
-  .wstatus-wrap { position: relative; display: inline-block; }
-  .wstatus { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; cursor: pointer; user-select: none; }
-  .wstatus:hover { opacity: 0.8; }
-  .wstatus-watching   { background: rgba(74,158,255,0.12); color: var(--accent); border: 1px solid rgba(74,158,255,0.25); }
-  .wstatus-interested { background: rgba(245,158,11,0.12); color: var(--yellow); border: 1px solid rgba(245,158,11,0.25); }
-  .wstatus-archived   { background: rgba(136,146,164,0.12); color: var(--muted); border: 1px solid rgba(136,146,164,0.25); }
-  .wstatus-dropdown { position: absolute; top: calc(100% + 4px); left: 0; background: #1a1d2e; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; min-width: 130px; box-shadow: 0 6px 20px rgba(0,0,0,0.5); display: none; z-index: 300; }
-  .wstatus-dropdown.open { display: block; }
-  .wstatus-option { padding: 8px 12px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
-  .wstatus-option:hover { background: rgba(255,255,255,0.06); }
-  .wstatus-option.active { background: rgba(74,158,255,0.1); }
-  .wstatus-saving { font-size: 10px; color: var(--muted); padding: 2px 6px; }
-  /* PER表示 */
-  .wper      { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: rgba(34,197,94,0.08);  color: #86efac;        border: 1px solid rgba(34,197,94,0.2); }
-  .wper-red  { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: rgba(239,68,68,0.08);  color: var(--red);     border: 1px solid rgba(239,68,68,0.2); }
-  .wper-null { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: rgba(136,146,164,0.08); color: var(--muted);   border: 1px solid rgba(136,146,164,0.2); }
-  /* PER矢印 */
-  .arrow-good { color: var(--green);  font-weight: 900; }
-  .arrow-bad  { color: var(--red);    font-weight: 900; }
-  .arrow-flat { color: var(--muted);  font-weight: 700; }
+    /* バッジ */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
 
-  /* 個別分析ページ一覧 */
-  .manifest-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
-  .manifest-card { background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-decoration: none; color: var(--text); transition: border-color 0.2s, transform 0.1s; display: block; position: relative; }
-  .manifest-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .manifest-card .mname { font-weight: 700; color: #fff; font-size: 14px; margin-bottom: 4px; }
-  .manifest-card .mcode { font-size: 11px; color: var(--accent); margin-bottom: 6px; }
-  .manifest-card .mdate { font-size: 10px; color: var(--muted); }
+    .badge-blue {
+      background: rgba(74, 158, 255, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(74, 158, 255, 0.3);
+    }
+
+    .badge-green {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .badge-red {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .badge-orange {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--yellow);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-gray {
+      background: rgba(136, 146, 164, 0.15);
+      color: var(--muted);
+      border: 1px solid rgba(136, 146, 164, 0.3);
+    }
+
+    .badge-purple {
+      background: rgba(124, 92, 252, 0.15);
+      color: #a78bfa;
+      border: 1px solid rgba(124, 92, 252, 0.3);
+    }
+
+    /* セクション */
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::before {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 18px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    /* サマリーKPI */
+    .kpi-val {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .kpi-sub {
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .positive {
+      color: var(--green);
+    }
+
+    .negative {
+      color: var(--red);
+    }
+
+    .neutral {
+      color: var(--muted);
+    }
+
+    /* ヘルスチェックサマリー */
+    .health-layout {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .health-badges-grid {
+      flex: 0 0 220px;
+    }
+
+    #healthDetailList {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .health-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 12px;
+      border-radius: 10px;
+      gap: 6px;
+    }
+
+    .health-badge .icon {
+      font-size: 24px;
+    }
+
+    .health-badge .count {
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .health-badge .hlabel {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .health-green {
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .health-yellow {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .health-orange {
+      background: rgba(251, 146, 60, 0.08);
+      border: 1px solid rgba(251, 146, 60, 0.2);
+    }
+
+    .health-red {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    /* 保有銘柄テーブル */
+    .holdings-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .holdings-table th {
+      font-size: 11px;
+      color: var(--muted);
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .holdings-table td {
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(45, 50, 82, 0.5);
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .holdings-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .holdings-table tr:hover td {
+      background: rgba(74, 158, 255, 0.04);
+    }
+
+    .stock-name {
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .stock-code {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* 売買履歴テーブル */
+    .trade-action-buy {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(74, 158, 255, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(74, 158, 255, 0.25);
+    }
+
+    .trade-action-sell {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--red);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    /* ヘルスチェック詳細 */
+    .health-row {
+      background: var(--card2);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .health-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .health-row .name-block {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .health-row .name-block .name {
+      font-weight: 700;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .health-row .name-block .code {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .health-row .detail-block {
+      flex: 2;
+      min-width: 200px;
+    }
+
+    .health-row .detail-block .reason {
+      font-size: 12px;
+      color: #94a3c8;
+      margin-top: 4px;
+    }
+
+    .health-row .metrics {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .metric-item {
+      text-align: center;
+    }
+
+    .metric-item .mval {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .metric-item .mlabel {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    /* ウォッチリスト */
+    .watchlist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 12px;
+    }
+
+    .watch-card {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .watch-card:hover {
+      border-color: var(--accent);
+    }
+
+    .watch-card.status-watching {
+      border-left: 3px solid var(--accent);
+    }
+
+    .watch-card.status-interested {
+      border-left: 3px solid var(--yellow);
+    }
+
+    .watch-card.status-archived {
+      border-left: 3px solid var(--muted);
+    }
+
+    .watch-card .wname {
+      font-weight: 700;
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .watch-card .wcode {
+      font-size: 11px;
+      color: var(--accent);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .watch-card .wnote {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .watch-card .wmeta {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .watch-card .wrank {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(124, 92, 252, 0.15);
+      color: #a78bfa;
+      border: 1px solid rgba(124, 92, 252, 0.3);
+    }
+
+    /* ステータスセレクター（インライン） */
+    .wstatus-wrap {
+      position: relative;
+      display: inline-block;
+    }
+
+    .wstatus {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .wstatus:hover {
+      opacity: 0.8;
+    }
+
+    .wstatus-watching {
+      background: rgba(74, 158, 255, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(74, 158, 255, 0.25);
+    }
+
+    .wstatus-interested {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--yellow);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
+    .wstatus-archived {
+      background: rgba(136, 146, 164, 0.12);
+      color: var(--muted);
+      border: 1px solid rgba(136, 146, 164, 0.25);
+    }
+
+    .wstatus-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      background: #1a1d2e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      min-width: 130px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 300;
+    }
+
+    .wstatus-dropdown.open {
+      display: block;
+    }
+
+    .wstatus-option {
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .wstatus-option:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .wstatus-option.active {
+      background: rgba(74, 158, 255, 0.1);
+    }
+
+    .wstatus-saving {
+      font-size: 10px;
+      color: var(--muted);
+      padding: 2px 6px;
+    }
+
+    /* PER表示 */
+    .wper {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(34, 197, 94, 0.08);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .wper-red {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(239, 68, 68, 0.08);
+      color: var(--red);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .wper-null {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(136, 146, 164, 0.08);
+      color: var(--muted);
+      border: 1px solid rgba(136, 146, 164, 0.2);
+    }
+
+    /* PER矢印 */
+    .arrow-good {
+      color: var(--green);
+      font-weight: 900;
+    }
+
+    .arrow-bad {
+      color: var(--red);
+      font-weight: 900;
+    }
+
+    .arrow-flat {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    /* 個別分析ページ一覧 */
+    .manifest-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .manifest-card {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color 0.2s, transform 0.1s;
+      display: block;
+      position: relative;
+    }
+
+    .manifest-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .manifest-card .mname {
+      font-weight: 700;
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .manifest-card .mcode {
+      font-size: 11px;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .manifest-card .mdate {
+      font-size: 10px;
+      color: var(--muted);
+    }
 
 
 
-  /* ローディング・エラー */
-  .loading { text-align: center; padding: 40px; color: var(--muted); }
-  .loading .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .error-msg { color: var(--red); font-size: 12px; padding: 12px; background: rgba(239,68,68,0.08); border-radius: 8px; border: 1px solid rgba(239,68,68,0.2); }
-  .empty-msg { color: var(--muted); font-size: 13px; text-align: center; padding: 24px; }
+    /* ローディング・エラー */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
 
-  /* 追加・売却ボタン */
-  .add-btn { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-  .add-btn:hover { background: rgba(34,197,94,0.28); }
-  .sell-btn { background: none; border: 1px solid rgba(239,68,68,0.35); color: var(--red); border-radius: 6px; padding: 3px 10px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-  .sell-btn:hover { background: rgba(239,68,68,0.12); }
+    .loading .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
 
-  /* 入力モーダル */
-  .input-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-  .input-modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; max-width: 400px; width: 92%; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-  .input-modal h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 18px; }
-  .input-modal .field { margin-bottom: 14px; }
-  .input-modal label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
-  .input-modal input { width: 100%; background: #0f1117; border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 14px; color: var(--text); outline: none; transition: border-color 0.15s; }
-  .input-modal input:focus { border-color: var(--accent); }
-  .input-modal .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
-  .modal-btn-cancel { padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border); background: none; color: var(--muted); font-size: 13px; cursor: pointer; }
-  .modal-btn-cancel:hover { background: rgba(255,255,255,0.05); }
-  .modal-btn-ok { padding: 8px 20px; border-radius: 8px; border: none; background: var(--green); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
-  .modal-btn-ok:hover { opacity: 0.85; }
-  .modal-btn-ok:disabled { opacity: 0.45; cursor: not-allowed; }
-  .modal-btn-danger { padding: 8px 20px; border-radius: 8px; border: none; background: var(--red); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
-  .modal-btn-danger:hover { opacity: 0.85; }
-  .modal-btn-gray { padding: 8px 20px; border-radius: 8px; border: none; background: rgba(136,146,164,0.2); color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; }
-  .modal-btn-gray:hover { background: rgba(136,146,164,0.32); }
-  .modal-error { color: var(--red); font-size: 12px; margin-top: 8px; min-height: 16px; }
-  /* 売却モーダルのモード選択タブ */
-  .sell-mode-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
-  .sell-tab { flex: 1; padding: 7px; border-radius: 8px; border: 1px solid var(--border); background: none; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; text-align: center; }
-  .sell-tab.active-sell { background: rgba(239,68,68,0.15); color: var(--red); border-color: rgba(239,68,68,0.35); }
-  .sell-tab.active-delete { background: rgba(136,146,164,0.12); color: var(--muted); border-color: rgba(136,146,164,0.3); }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
-  /* フッター */
-  .footer { text-align: center; padding: 20px; color: var(--muted); font-size: 11px; border-top: 1px solid var(--border); margin-top: 32px; line-height: 1.8; }
+    .error-msg {
+      color: var(--red);
+      font-size: 12px;
+      padding: 12px;
+      background: rgba(239, 68, 68, 0.08);
+      border-radius: 8px;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
 
-  /* レスポンシブ */
-  @media (max-width: 768px) {
-    .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr 1fr; }
-    .kpi-val { font-size: 18px; }
-    .health-layout { flex-direction: column; }
-    .health-badges-grid { flex: none; width: 100%; }
-  }
-  @media (max-width: 480px) {
-    .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr; }
-  }
-</style>
+    .empty-msg {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 24px;
+    }
+
+    /* 追加・売却ボタン */
+    .add-btn {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .add-btn:hover {
+      background: rgba(34, 197, 94, 0.28);
+    }
+
+    .sell-btn {
+      background: none;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: var(--red);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .sell-btn:hover {
+      background: rgba(239, 68, 68, 0.12);
+    }
+
+    /* 入力モーダル */
+    .input-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .input-modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      max-width: 400px;
+      width: 92%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .input-modal h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 18px;
+    }
+
+    .input-modal .field {
+      margin-bottom: 14px;
+    }
+
+    .input-modal label {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .input-modal input {
+      width: 100%;
+      background: #0f1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .input-modal input:focus {
+      border-color: var(--accent);
+    }
+
+    .input-modal .modal-btns {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .modal-btn-cancel {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .modal-btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .modal-btn-ok {
+      padding: 8px 20px;
+      border-radius: 8px;
+      border: none;
+      background: var(--green);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .modal-btn-ok:hover {
+      opacity: 0.85;
+    }
+
+    .modal-btn-ok:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .modal-btn-danger {
+      padding: 8px 20px;
+      border-radius: 8px;
+      border: none;
+      background: var(--red);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .modal-btn-danger:hover {
+      opacity: 0.85;
+    }
+
+    .modal-btn-gray {
+      padding: 8px 20px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(136, 146, 164, 0.2);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .modal-btn-gray:hover {
+      background: rgba(136, 146, 164, 0.32);
+    }
+
+    .modal-error {
+      color: var(--red);
+      font-size: 12px;
+      margin-top: 8px;
+      min-height: 16px;
+    }
+
+    /* 売却モーダルのモード選択タブ */
+    .sell-mode-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .sell-tab {
+      flex: 1;
+      padding: 7px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .sell-tab.active-sell {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--red);
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    .sell-tab.active-delete {
+      background: rgba(136, 146, 164, 0.12);
+      color: var(--muted);
+      border-color: rgba(136, 146, 164, 0.3);
+    }
+
+    /* フッター */
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+      font-size: 11px;
+      border-top: 1px solid var(--border);
+      margin-top: 32px;
+      line-height: 1.8;
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 768px) {
+
+      .grid-2,
+      .grid-3,
+      .grid-4,
+      .grid-5 {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .kpi-val {
+        font-size: 18px;
+      }
+
+      .health-layout {
+        flex-direction: column;
+      }
+
+      .health-badges-grid {
+        flex: none;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+
+      .grid-2,
+      .grid-3,
+      .grid-4,
+      .grid-5 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div class="container">
+  <div class="container">
 
-  <!-- ヘッダー -->
-  <div class="header-card">
-    <div class="header-left">
-      <h1>📊 投資管理ダッシュボード</h1>
-      <p id="lastUpdated" class="last-updated">読み込み中...</p>
+    <!-- ヘッダー -->
+    <div class="header-card">
+      <div class="header-left">
+        <h1>📊 投資管理ダッシュボード</h1>
+        <p id="lastUpdated" class="last-updated">読み込み中...</p>
+      </div>
+      <div class="header-right"></div>
     </div>
-    <div class="header-right"></div>
-  </div>
 
-  <!-- ポートフォリオサマリー -->
-  <div class="section">
-    <div class="section-title">ポートフォリオ サマリー</div>
-    <div class="grid-5" id="portfolioSummary">
-      <div class="card"><div class="loading"><div class="spinner"></div></div></div>
-      <div class="card"><div class="loading"><div class="spinner"></div></div></div>
-      <div class="card"><div class="loading"><div class="spinner"></div></div></div>
-      <div class="card"><div class="loading"><div class="spinner"></div></div></div>
-      <div class="card"><div class="loading"><div class="spinner"></div></div></div>
+    <!-- ポートフォリオサマリー -->
+    <div class="section">
+      <div class="section-title">ポートフォリオ サマリー</div>
+      <div class="grid-5" id="portfolioSummary">
+        <div class="card">
+          <div class="loading">
+            <div class="spinner"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="loading">
+            <div class="spinner"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="loading">
+            <div class="spinner"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="loading">
+            <div class="spinner"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="loading">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- ヘルスチェック サマリー -->
-  <div class="section">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-      <div class="section-title" style="margin-bottom:0;">ヘルスチェック サマリー</div>
-      <button class="add-btn" id="healthRunBtn" onclick="onRunHealthCheck()" style="background:rgba(74,158,255,0.15); color:var(--accent); border-color:rgba(74,158,255,0.3);">
-        🩺 ヘルスチェック実行
-      </button>
+    <!-- ヘルスチェック サマリー -->
+    <div class="section">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div class="section-title" style="margin-bottom:0;">ヘルスチェック サマリー</div>
+        <button class="add-btn" id="healthRunBtn" onclick="onRunHealthCheck()"
+          style="background:rgba(74,158,255,0.15); color:var(--accent); border-color:rgba(74,158,255,0.3);">
+          🩺 ヘルスチェック実行
+        </button>
+      </div>
+      <div class="health-layout" id="healthLayout" style="display:none;">
+        <div class="grid-2 health-badges-grid" id="healthSummaryBadges"></div>
+        <div class="card" id="healthDetailList"></div>
+      </div>
+      <div class="card" id="healthPlaceholder">
+        <div class="empty-msg">🩺 上の「ヘルスチェック実行」ボタンで診断を開始できます。<br><span
+            style="font-size:11px; color:var(--muted);">yfinanceから各保有銘柄のデータを取得するため、少し時間がかかります。</span></div>
+      </div>
     </div>
-    <div class="health-layout" id="healthLayout" style="display:none;">
-      <div class="grid-2 health-badges-grid" id="healthSummaryBadges"></div>
-      <div class="card" id="healthDetailList"></div>
+
+    <!-- 保有銘柄一覧 -->
+    <div class="section">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div class="section-title" style="margin-bottom:0;">保有銘柄一覧</div>
+        <button class="add-btn" onclick="onOpenBuyModal()">＋ 買い追加</button>
+      </div>
+      <div class="card" id="holdingsTable">
+        <div class="loading">
+          <div class="spinner"></div>
+        </div>
+      </div>
     </div>
-    <div class="card" id="healthPlaceholder">
-      <div class="empty-msg">🩺 上の「ヘルスチェック実行」ボタンで診断を開始できます。<br><span style="font-size:11px; color:var(--muted);">yfinanceから各保有銘柄のデータを取得するため、少し時間がかかります。</span></div>
+
+    <!-- 売買履歴 -->
+    <div class="section" id="tradeHistorySection" style="display:none;">
+      <div class="section-title">売買履歴</div>
+      <div class="card" id="tradeHistoryTable"></div>
     </div>
-  </div>
 
-  <!-- 保有銘柄一覧 -->
-  <div class="section">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-      <div class="section-title" style="margin-bottom:0;">保有銘柄一覧</div>
-      <button class="add-btn" onclick="onOpenBuyModal()">＋ 買い追加</button>
+    <!-- ウォッチリスト -->
+    <div class="section">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div class="section-title" style="margin-bottom:0;">ウォッチリスト <span id="watchlistCount"
+            style="font-size:12px; color:var(--muted); font-weight:400;"></span></div>
+        <button class="add-btn" id="perUpdateBtn" onclick="onUpdatePer()"
+          style="background:rgba(124,92,252,0.15); color:#a78bfa; border-color:rgba(124,92,252,0.3);">
+          📊 PER更新
+        </button>
+      </div>
+      <div class="watchlist-grid" id="watchlistGrid">
+        <div class="card">
+          <div class="loading">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="card" id="holdingsTable">
-      <div class="loading"><div class="spinner"></div></div>
+
+    <!-- 個別銘柄分析ページ -->
+    <div class="section">
+      <div class="section-title">個別銘柄 分析レポート</div>
+      <div class="manifest-list" id="manifestList">
+        <div class="card">
+          <div class="loading">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- 売買履歴 -->
-  <div class="section" id="tradeHistorySection" style="display:none;">
-    <div class="section-title">売買履歴</div>
-    <div class="card" id="tradeHistoryTable"></div>
-  </div>
-
-  <!-- ウォッチリスト -->
-  <div class="section">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-      <div class="section-title" style="margin-bottom:0;">ウォッチリスト <span id="watchlistCount" style="font-size:12px; color:var(--muted); font-weight:400;"></span></div>
-      <button class="add-btn" id="perUpdateBtn" onclick="onUpdatePer()" style="background:rgba(124,92,252,0.15); color:#a78bfa; border-color:rgba(124,92,252,0.3);">
-        📊 PER更新
-      </button>
+    <div class="footer">
+      <p>⚠️ このダッシュボードは投資助言ではありません。情報は参考目的に限り、売買の最終判断はご自身でお願いします。</p>
+      <p>データソース：yfinance（遅延データの可能性あり）/ watchlist.json / portfolio.json</p>
     </div>
-    <div class="watchlist-grid" id="watchlistGrid">
-      <div class="card"><div class="loading"><div class="spinner"></div></div></div>
-    </div>
-  </div>
 
-  <!-- 個別銘柄分析ページ -->
-  <div class="section">
-    <div class="section-title">個別銘柄 分析レポート</div>
-    <div class="manifest-list" id="manifestList">
-      <div class="card"><div class="loading"><div class="spinner"></div></div></div>
-    </div>
-  </div>
+  </div><!-- /container -->
 
-  <div class="footer">
-    <p>⚠️ このダッシュボードは投資助言ではありません。情報は参考目的に限り、売買の最終判断はご自身でお願いします。</p>
-    <p>データソース：yfinance（遅延データの可能性あり）/ watchlist.json / portfolio.json</p>
-  </div>
+  <script>
+    // ── データソース設定 ──────────────────────────────────────
+    // 静的JSON（watchlist/portfolio/manifest）→ GitHub Raw（push直後に反映）
+    // yfinanceが必要なAPI（healthcheck）→ Render
+    const GITHUB_RAW = 'https://raw.githubusercontent.com/bi-al1/stock-dashboard/main';
+    const RENDER_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://localhost:8000'
+      : 'https://stock-dashboard-rif1.onrender.com';
 
-</div><!-- /container -->
+    // GitHub Raw から JSON を取得（キャッシュバイパス付き）
+    async function fetchGitHub(path) {
+      const url = `${GITHUB_RAW}${path}?_=${Date.now()}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`GitHub fetch error: ${res.status} ${path}`);
+      return res.json();
+    }
 
-<script>
-// ── データソース設定 ──────────────────────────────────────
-// 静的JSON（watchlist/portfolio/manifest）→ GitHub Raw（push直後に反映）
-// yfinanceが必要なAPI（healthcheck）→ Render
-const GITHUB_RAW = 'https://raw.githubusercontent.com/bi-al1/stock-dashboard/main';
-const RENDER_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:8000'
-  : 'https://stock-dashboard-rif1.onrender.com';
+    // Render API から JSON を取得（yfinance系のみ）
+    async function fetchRender(path) {
+      const res = await fetch(RENDER_BASE + path);
+      if (!res.ok) throw new Error(`API error: ${res.status}`);
+      return res.json();
+    }
 
-// GitHub Raw から JSON を取得（キャッシュバイパス付き）
-async function fetchGitHub(path) {
-  const url = `${GITHUB_RAW}${path}?_=${Date.now()}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`GitHub fetch error: ${res.status} ${path}`);
-  return res.json();
-}
+    // ── ユーティリティ ────────────────────────────────────────
+    function fmt(n, digits = 0) {
+      if (n == null) return '—';
+      return Number(n).toLocaleString('ja-JP', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+    }
+    function fmtPct(n) {
+      if (n == null) return '—';
+      const sign = n >= 0 ? '+' : '';
+      return `${sign}${Number(n).toFixed(1)}%`;
+    }
+    function gainClass(n) {
+      if (n == null) return 'neutral';
+      return n >= 0 ? 'positive' : 'negative';
+    }
+    function rankBadgeColor(rank) {
+      const map = { S: 'badge-green', 'A+': 'badge-green', A: 'badge-green', 'B+': 'badge-blue', B: 'badge-blue', C: 'badge-orange', D: 'badge-red', E: 'badge-red', F: 'badge-red' };
+      return map[rank] || 'badge-gray';
+    }
 
-// Render API から JSON を取得（yfinance系のみ）
-async function fetchRender(path) {
-  const res = await fetch(RENDER_BASE + path);
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
-}
+    // ── メインロード ──────────────────────────────────────────
+    let healthData = null;
 
-// ── ユーティリティ ────────────────────────────────────────
-function fmt(n, digits=0) {
-  if (n == null) return '—';
-  return Number(n).toLocaleString('ja-JP', { minimumFractionDigits: digits, maximumFractionDigits: digits });
-}
-function fmtPct(n) {
-  if (n == null) return '—';
-  const sign = n >= 0 ? '+' : '';
-  return `${sign}${Number(n).toFixed(1)}%`;
-}
-function gainClass(n) {
-  if (n == null) return 'neutral';
-  return n >= 0 ? 'positive' : 'negative';
-}
-function rankBadgeColor(rank) {
-  const map = { S:'badge-green', 'A+':'badge-green', A:'badge-green', 'B+':'badge-blue', B:'badge-blue', C:'badge-orange', D:'badge-red', E:'badge-red', F:'badge-red' };
-  return map[rank] || 'badge-gray';
-}
+    async function loadAll() {
+      document.getElementById('lastUpdated').textContent = `更新中... ${new Date().toLocaleString('ja-JP')}`;
 
-// ── メインロード ──────────────────────────────────────────
-let healthData = null;
+      // manifest を先に読んでURLマップを構築してからウォッチリストを描画
+      await loadManifest();
+      await Promise.all([
+        loadPortfolio(),
+        loadWatchlist(),
+      ]);
 
-async function loadAll() {
-  document.getElementById('lastUpdated').textContent = `更新中... ${new Date().toLocaleString('ja-JP')}`;
+      document.getElementById('lastUpdated').textContent = `最終更新: ${new Date().toLocaleString('ja-JP')}`;
+    }
 
-  // manifest を先に読んでURLマップを構築してからウォッチリストを描画
-  await loadManifest();
-  await Promise.all([
-    loadPortfolio(),
-    loadWatchlist(),
-  ]);
+    // ── ポートフォリオ ─────────────────────────────────────────
+    async function loadPortfolio() {
+      const el = document.getElementById('portfolioSummary');
+      try {
+        const data = await fetchRender('/api/portfolio');
+        const holdings = data.holdings || [];
 
-  document.getElementById('lastUpdated').textContent = `最終更新: ${new Date().toLocaleString('ja-JP')}`;
-}
+        // 取得原価ベースで合計（現在値はhealthcheckで後から更新）
+        let totalCost = 0;
+        holdings.forEach(h => { totalCost += h.avg_cost * h.shares; });
 
-// ── ポートフォリオ ─────────────────────────────────────────
-async function loadPortfolio() {
-  const el = document.getElementById('portfolioSummary');
-  try {
-    const data = await fetchRender('/api/portfolio');
-    const holdings = data.holdings || [];
+        // 実現損益（売却済みトレードのprofitを合計）
+        const tradeHistory = data.trade_history || [];
+        const realizedProfit = tradeHistory
+          .filter(t => t.action === 'sell' && t.profit != null)
+          .reduce((sum, t) => sum + t.profit, 0);
+        const realizedProfitCls = gainClass(realizedProfit);
+        const realizedProfitStr = realizedProfit >= 0 ? `¥${fmt(realizedProfit)}` : `-¥${fmt(Math.abs(realizedProfit))}`;
+        const tradeCount = tradeHistory.filter(t => t.action === 'sell').length;
 
-    // 取得原価ベースで合計（現在値はhealthcheckで後から更新）
-    let totalCost = 0;
-    holdings.forEach(h => { totalCost += h.avg_cost * h.shares; });
-
-    // 実現損益（売却済みトレードのprofitを合計）
-    const tradeHistory = data.trade_history || [];
-    const realizedProfit = tradeHistory
-      .filter(t => t.action === 'sell' && t.profit != null)
-      .reduce((sum, t) => sum + t.profit, 0);
-    const realizedProfitCls = gainClass(realizedProfit);
-    const realizedProfitStr = realizedProfit >= 0 ? `¥${fmt(realizedProfit)}` : `-¥${fmt(Math.abs(realizedProfit))}`;
-    const tradeCount = tradeHistory.filter(t => t.action === 'sell').length;
-
-    el.innerHTML = `
+        el.innerHTML = `
       <div class="card">
         <div class="kpi-label">保有銘柄数</div>
         <div class="kpi-val">${holdings.length} 銘柄</div>
@@ -386,71 +1168,71 @@ async function loadPortfolio() {
       </div>
     `;
 
-    // 含み損益の合計（current_priceが取得できた銘柄のみ）
-    let unrealizedTotal = null;
-    let unrealizedCost = 0;
-    let hasPrice = false;
-    holdings.forEach(h => {
-      if (h.gain_loss != null) {
-        if (!hasPrice) { unrealizedTotal = 0; hasPrice = true; }
-        unrealizedTotal += h.gain_loss;
-        unrealizedCost += h.avg_cost * h.shares;
-      }
-    });
+        // 含み損益の合計（current_priceが取得できた銘柄のみ）
+        let unrealizedTotal = null;
+        let unrealizedCost = 0;
+        let hasPrice = false;
+        holdings.forEach(h => {
+          if (h.gain_loss != null) {
+            if (!hasPrice) { unrealizedTotal = 0; hasPrice = true; }
+            unrealizedTotal += h.gain_loss;
+            unrealizedCost += h.avg_cost * h.shares;
+          }
+        });
 
-    // 含み損益KPI更新
-    const glKpi = document.getElementById('totalGLKpi');
-    const glPctKpi = document.getElementById('totalGLPctKpi');
-    if (glKpi && unrealizedTotal != null) {
-      const pct = unrealizedCost > 0 ? unrealizedTotal / unrealizedCost * 100 : null;
-      glKpi.textContent = (unrealizedTotal >= 0 ? '¥' : '-¥') + fmt(Math.abs(unrealizedTotal));
-      glKpi.className = 'kpi-val ' + gainClass(unrealizedTotal);
-      if (glPctKpi && pct != null) {
-        glPctKpi.textContent = fmtPct(pct);
-        glPctKpi.className = 'kpi-sub ' + gainClass(pct);
+        // 含み損益KPI更新
+        const glKpi = document.getElementById('totalGLKpi');
+        const glPctKpi = document.getElementById('totalGLPctKpi');
+        if (glKpi && unrealizedTotal != null) {
+          const pct = unrealizedCost > 0 ? unrealizedTotal / unrealizedCost * 100 : null;
+          glKpi.textContent = (unrealizedTotal >= 0 ? '¥' : '-¥') + fmt(Math.abs(unrealizedTotal));
+          glKpi.className = 'kpi-val ' + gainClass(unrealizedTotal);
+          if (glPctKpi && pct != null) {
+            glPctKpi.textContent = fmtPct(pct);
+            glPctKpi.className = 'kpi-sub ' + gainClass(pct);
+          }
+        }
+
+        // 総合損益KPI更新（含み + 実現）
+        const combinedKpi = document.getElementById('totalCombinedKpi');
+        const combinedSubKpi = document.getElementById('totalCombinedSubKpi');
+        if (combinedKpi && (unrealizedTotal != null || tradeCount > 0)) {
+          const combined = (unrealizedTotal ?? 0) + realizedProfit;
+          combinedKpi.textContent = (combined >= 0 ? '¥' : '-¥') + fmt(Math.abs(combined));
+          combinedKpi.className = 'kpi-val ' + gainClass(combined);
+          if (combinedSubKpi) {
+            const parts = [];
+            if (unrealizedTotal != null) parts.push(`含み <span class="${gainClass(unrealizedTotal)}">${unrealizedTotal >= 0 ? '¥' : '-¥'}${fmt(Math.abs(unrealizedTotal))}</span>`);
+            if (tradeCount > 0) parts.push(`実現 <span class="${gainClass(realizedProfit)}">${realizedProfit >= 0 ? '¥' : '-¥'}${fmt(Math.abs(realizedProfit))}</span>`);
+            combinedSubKpi.innerHTML = parts.join('<br>');
+            combinedSubKpi.className = 'kpi-sub neutral';
+          }
+        }
+
+        // 保有銘柄テーブル & 売買履歴
+        renderHoldingsTable(holdings);
+        renderTradeHistory(tradeHistory);
+      } catch (e) {
+        el.innerHTML = `<div class="card"><div class="error-msg">⚠️ ポートフォリオの読み込みに失敗しました。<br><small>${e.message}</small></div></div>`;
+        document.getElementById('holdingsTable').innerHTML = '';
       }
     }
 
-    // 総合損益KPI更新（含み + 実現）
-    const combinedKpi = document.getElementById('totalCombinedKpi');
-    const combinedSubKpi = document.getElementById('totalCombinedSubKpi');
-    if (combinedKpi && (unrealizedTotal != null || tradeCount > 0)) {
-      const combined = (unrealizedTotal ?? 0) + realizedProfit;
-      combinedKpi.textContent = (combined >= 0 ? '¥' : '-¥') + fmt(Math.abs(combined));
-      combinedKpi.className = 'kpi-val ' + gainClass(combined);
-      if (combinedSubKpi) {
-        const parts = [];
-        if (unrealizedTotal != null) parts.push(`含み <span class="${gainClass(unrealizedTotal)}">${unrealizedTotal >= 0 ? '¥' : '-¥'}${fmt(Math.abs(unrealizedTotal))}</span>`);
-        if (tradeCount > 0) parts.push(`実現 <span class="${gainClass(realizedProfit)}">${realizedProfit >= 0 ? '¥' : '-¥'}${fmt(Math.abs(realizedProfit))}</span>`);
-        combinedSubKpi.innerHTML = parts.join('<br>');
-        combinedSubKpi.className = 'kpi-sub neutral';
+    function renderHoldingsTable(holdings) {
+      const el = document.getElementById('holdingsTable');
+      if (!holdings.length) {
+        el.innerHTML = '<div class="empty-msg">📭 保有銘柄はありません。<br>右上の「＋ 買い追加」から記録できます。</div>';
+        return;
       }
-    }
 
-    // 保有銘柄テーブル & 売買履歴
-    renderHoldingsTable(holdings);
-    renderTradeHistory(tradeHistory);
-  } catch(e) {
-    el.innerHTML = `<div class="card"><div class="error-msg">⚠️ ポートフォリオの読み込みに失敗しました。<br><small>${e.message}</small></div></div>`;
-    document.getElementById('holdingsTable').innerHTML = '';
-  }
-}
+      const rows = holdings.map(h => {
+        const evalAmt = h.current_price ? h.current_price * h.shares : null;
+        const alertLevel = healthData?.results?.find(r => r.code === h.code)?.alert;
+        const alertBadge = alertLevel
+          ? `<span class="badge badge-${alertLevel.level === 'green' ? 'green' : alertLevel.level === 'yellow' ? 'orange' : alertLevel.level === 'orange' ? 'orange' : 'red'}" style="font-size:10px;">${alertLevel.label}</span>`
+          : '';
 
-function renderHoldingsTable(holdings) {
-  const el = document.getElementById('holdingsTable');
-  if (!holdings.length) {
-    el.innerHTML = '<div class="empty-msg">📭 保有銘柄はありません。<br>右上の「＋ 買い追加」から記録できます。</div>';
-    return;
-  }
-
-  const rows = holdings.map(h => {
-    const evalAmt = h.current_price ? h.current_price * h.shares : null;
-    const alertLevel = healthData?.results?.find(r => r.code === h.code)?.alert;
-    const alertBadge = alertLevel
-      ? `<span class="badge badge-${alertLevel.level === 'green' ? 'green' : alertLevel.level === 'yellow' ? 'orange' : alertLevel.level === 'orange' ? 'orange' : 'red'}" style="font-size:10px;">${alertLevel.label}</span>`
-      : '';
-
-    return `
+        return `
       <tr>
         <td>
           <div class="stock-name">${h.name}</div>
@@ -465,9 +1247,9 @@ function renderHoldingsTable(holdings) {
         <td>${alertBadge}</td>
         <td><button class="sell-btn" onclick="onOpenSellModal('${h.code}','${h.name}',${h.shares})">売却</button></td>
       </tr>`;
-  }).join('');
+      }).join('');
 
-  el.innerHTML = `
+      el.innerHTML = `
     <table class="holdings-table">
       <thead>
         <tr>
@@ -477,33 +1259,33 @@ function renderHoldingsTable(holdings) {
       </thead>
       <tbody>${rows}</tbody>
     </table>`;
-}
-
-function renderTradeHistory(tradeHistory) {
-  const section = document.getElementById('tradeHistorySection');
-  const el = document.getElementById('tradeHistoryTable');
-  if (!tradeHistory || !tradeHistory.length) {
-    section.style.display = 'none';
-    return;
-  }
-  section.style.display = '';
-
-  // 新しい順に並べ替え
-  const sorted = [...tradeHistory].reverse();
-
-  const rows = sorted.map(t => {
-    const isSell = t.action === 'sell';
-    const actionTag = isSell
-      ? `<span class="trade-action-sell">売</span>`
-      : `<span class="trade-action-buy">買</span>`;
-    const totalAmt = `¥${fmt(t.price * t.shares)}`;
-    let profitCell = '<span style="color:var(--muted)">—</span>';
-    if (isSell && t.profit != null) {
-      const cls = t.profit >= 0 ? 'positive' : 'negative';
-      const sign = t.profit >= 0 ? '' : '-';
-      profitCell = `<span class="${cls}">${sign}¥${fmt(Math.abs(t.profit))}</span>`;
     }
-    return `
+
+    function renderTradeHistory(tradeHistory) {
+      const section = document.getElementById('tradeHistorySection');
+      const el = document.getElementById('tradeHistoryTable');
+      if (!tradeHistory || !tradeHistory.length) {
+        section.style.display = 'none';
+        return;
+      }
+      section.style.display = '';
+
+      // 新しい順に並べ替え（元のインデックスを保持）
+      const sorted = tradeHistory.map((t, i) => ({ ...t, _origIdx: i })).reverse();
+
+      const rows = sorted.map(t => {
+        const isSell = t.action === 'sell';
+        const actionTag = isSell
+          ? `<span class="trade-action-sell">売</span>`
+          : `<span class="trade-action-buy">買</span>`;
+        const totalAmt = `¥${fmt(t.price * t.shares)}`;
+        let profitCell = '<span style="color:var(--muted)">—</span>';
+        if (isSell && t.profit != null) {
+          const cls = t.profit >= 0 ? 'positive' : 'negative';
+          const sign = t.profit >= 0 ? '' : '-';
+          profitCell = `<span class="${cls}">${sign}¥${fmt(Math.abs(t.profit))}</span>`;
+        }
+        return `
       <tr>
         <td style="color:var(--muted); font-size:12px;">${t.date}</td>
         <td>
@@ -515,84 +1297,99 @@ function renderTradeHistory(tradeHistory) {
         <td>¥${fmt(t.price)}</td>
         <td>${totalAmt}</td>
         <td>${profitCell}</td>
+        <td><button class="sell-btn" style="font-size:10px;padding:2px 8px;border-color:rgba(136,146,164,0.3);color:var(--muted);" onclick="onDeleteTrade(${t._origIdx},'${t.name}','${t.action === 'buy' ? '買' : '売'}',${t.shares},'${t.date}')">🗑</button></td>
       </tr>`;
-  }).join('');
+      }).join('');
 
-  el.innerHTML = `
+      el.innerHTML = `
     <table class="holdings-table">
       <thead>
         <tr>
-          <th>日付</th><th>銘柄</th><th>種別</th><th>株数</th><th>単価</th><th>約定金額</th><th>損益</th>
+          <th>日付</th><th>銘柄</th><th>種別</th><th>株数</th><th>単価</th><th>約定金額</th><th>損益</th><th></th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
     </table>`;
-}
+    }
 
-// ── ヘルスチェック ─────────────────────────────────────────
-async function onRunHealthCheck() {
-  const btn = document.getElementById('healthRunBtn');
-  const placeholder = document.getElementById('healthPlaceholder');
-  const layout = document.getElementById('healthLayout');
-  const badgesEl = document.getElementById('healthSummaryBadges');
-  const listEl = document.getElementById('healthDetailList');
+    async function onDeleteTrade(index, name, action, shares, date) {
+      if (!confirm(`${date} の ${name} ${action}${shares}株 を履歴から削除しますか？\n\n※ 保有銘柄は残りの履歴から自動再計算されます。`)) return;
+      try {
+        const res = await fetch(`${RENDER_BASE}/api/portfolio/trade/${index}`, { method: 'DELETE' });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          throw new Error(j.detail ?? '削除に失敗しました');
+        }
+        await loadPortfolio();
+      } catch (e) {
+        alert(`削除失敗: ${e.message}`);
+      }
+    }
 
-  btn.disabled = true;
-  btn.textContent = '⏳ 診断中...';
+    // ── ヘルスチェック ─────────────────────────────────────────
+    async function onRunHealthCheck() {
+      const btn = document.getElementById('healthRunBtn');
+      const placeholder = document.getElementById('healthPlaceholder');
+      const layout = document.getElementById('healthLayout');
+      const badgesEl = document.getElementById('healthSummaryBadges');
+      const listEl = document.getElementById('healthDetailList');
 
-  placeholder.style.display = 'none';
-  layout.style.display = '';
-  badgesEl.innerHTML = '<div class="card"><div class="loading"><div class="spinner"></div></div></div>';
-  listEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+      btn.disabled = true;
+      btn.textContent = '⏳ 診断中...';
 
-  try {
-    await loadHealthCheck();
-    btn.textContent = '✅ 診断完了';
-    btn.style.background = 'rgba(34,197,94,0.15)';
-    btn.style.color = 'var(--green)';
-    btn.style.borderColor = 'rgba(34,197,94,0.3)';
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.textContent = '🩺 再実行';
-      btn.style.background = 'rgba(74,158,255,0.15)';
-      btn.style.color = 'var(--accent)';
-      btn.style.borderColor = 'rgba(74,158,255,0.3)';
-    }, 2000);
-  } catch(e) {
-    btn.disabled = false;
-    btn.textContent = '🩺 ヘルスチェック実行';
-  }
-}
+      placeholder.style.display = 'none';
+      layout.style.display = '';
+      badgesEl.innerHTML = '<div class="card"><div class="loading"><div class="spinner"></div></div></div>';
+      listEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
 
-async function loadHealthCheck() {
-  const badgesEl = document.getElementById('healthSummaryBadges');
-  const listEl = document.getElementById('healthDetailList');
-  try {
-    const data = await fetchRender('/api/healthcheck');
-    healthData = data;
-    const s = data.summary || {};
+      try {
+        await loadHealthCheck();
+        btn.textContent = '✅ 診断完了';
+        btn.style.background = 'rgba(34,197,94,0.15)';
+        btn.style.color = 'var(--green)';
+        btn.style.borderColor = 'rgba(34,197,94,0.3)';
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.textContent = '🩺 再実行';
+          btn.style.background = 'rgba(74,158,255,0.15)';
+          btn.style.color = 'var(--accent)';
+          btn.style.borderColor = 'rgba(74,158,255,0.3)';
+        }, 2000);
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = '🩺 ヘルスチェック実行';
+      }
+    }
 
-    badgesEl.innerHTML = `
+    async function loadHealthCheck() {
+      const badgesEl = document.getElementById('healthSummaryBadges');
+      const listEl = document.getElementById('healthDetailList');
+      try {
+        const data = await fetchRender('/api/healthcheck');
+        healthData = data;
+        const s = data.summary || {};
+
+        badgesEl.innerHTML = `
       <div class="health-badge health-green"><div class="icon">✅</div><div class="count" style="color:var(--green)">${s.green ?? 0}</div><div class="hlabel">問題なし</div></div>
       <div class="health-badge health-yellow"><div class="icon">🟡</div><div class="count" style="color:var(--yellow)">${s.yellow ?? 0}</div><div class="hlabel">早期警告</div></div>
       <div class="health-badge health-orange"><div class="icon">🟠</div><div class="count" style="color:#fb923c">${s.orange ?? 0}</div><div class="hlabel">注意</div></div>
       <div class="health-badge health-red"><div class="icon">🔴</div><div class="count" style="color:var(--red)">${s.red ?? 0}</div><div class="hlabel">撤退検討</div></div>
     `;
 
-    if (!data.results?.length) {
-      listEl.innerHTML = '<div class="empty-msg">保有銘柄がありません</div>';
-      return;
-    }
+        if (!data.results?.length) {
+          listEl.innerHTML = '<div class="empty-msg">保有銘柄がありません</div>';
+          return;
+        }
 
-    const items = data.results.map(r => {
-      const tech = r.technical || {};
-      const rsiVal = tech.rsi != null ? `RSI ${tech.rsi}` : 'RSI —';
-      const smaVal = tech.death_cross ? '💀 デッドクロス' : tech.golden_cross ? '✨ ゴールデンクロス' : 'SMA 判定中';
-      const price = r.current_price ? `¥${fmt(r.current_price)}` : '—';
-      const alertColors = { green:'var(--green)', yellow:'var(--yellow)', orange:'#fb923c', red:'var(--red)' };
-      const col = alertColors[r.alert?.level] || 'var(--muted)';
+        const items = data.results.map(r => {
+          const tech = r.technical || {};
+          const rsiVal = tech.rsi != null ? `RSI ${tech.rsi}` : 'RSI —';
+          const smaVal = tech.death_cross ? '💀 デッドクロス' : tech.golden_cross ? '✨ ゴールデンクロス' : 'SMA 判定中';
+          const price = r.current_price ? `¥${fmt(r.current_price)}` : '—';
+          const alertColors = { green: 'var(--green)', yellow: 'var(--yellow)', orange: '#fb923c', red: 'var(--red)' };
+          const col = alertColors[r.alert?.level] || 'var(--muted)';
 
-      return `
+          return `
         <div class="health-row">
           <div class="name-block">
             <div class="name">${r.name}</div>
@@ -608,106 +1405,106 @@ async function loadHealthCheck() {
             <div class="metric-item"><div class="mval" style="font-size:11px;">${smaVal}</div><div class="mlabel">SMA</div></div>
           </div>
         </div>`;
-    }).join('');
+        }).join('');
 
-    listEl.innerHTML = items;
+        listEl.innerHTML = items;
 
-    // テーブルのアラートバッジを再描画（healthDataが揃ったので）
-    const portfolioData = document.querySelector('.holdings-table');
-    if (portfolioData) {
-      // 保有銘柄のテーブルを再取得して再描画
-      loadPortfolio();
+        // テーブルのアラートバッジを再描画（healthDataが揃ったので）
+        const portfolioData = document.querySelector('.holdings-table');
+        if (portfolioData) {
+          // 保有銘柄のテーブルを再取得して再描画
+          loadPortfolio();
+        }
+
+      } catch (e) {
+        badgesEl.innerHTML = `<div class="error-msg">⚠️ ヘルスチェック失敗<br><small>${e.message}</small></div>`;
+        listEl.innerHTML = '';
+      }
     }
 
-  } catch(e) {
-    badgesEl.innerHTML = `<div class="error-msg">⚠️ ヘルスチェック失敗<br><small>${e.message}</small></div>`;
-    listEl.innerHTML = '';
-  }
-}
+    // ── ウォッチリスト ─────────────────────────────────────────
+    // manifest の stocks を code → url で引けるようにキャッシュ
+    let manifestUrlMap = {};
+    // ウォッチリストのcodeセット
+    let watchlistCodesSet = new Set();
 
-// ── ウォッチリスト ─────────────────────────────────────────
-// manifest の stocks を code → url で引けるようにキャッシュ
-let manifestUrlMap = {};
-// ウォッチリストのcodeセット
-let watchlistCodesSet = new Set();
+    async function loadWatchlist() {
+      const el = document.getElementById('watchlistGrid');
+      const countEl = document.getElementById('watchlistCount');
+      try {
+        const data = await fetchRender('/api/watchlist');
+        const rawList = data.watchlist || [];
+        // アーカイブ済み・即時アーカイブ済みを除外して描画
+        const list = rawList.filter(w => w.status !== 'archived');
+        watchlistCodesSet = new Set(rawList.map(w => w.code));
+        countEl.textContent = `（${list.length} 銘柄）`;
 
-async function loadWatchlist() {
-  const el = document.getElementById('watchlistGrid');
-  const countEl = document.getElementById('watchlistCount');
-  try {
-    const data = await fetchRender('/api/watchlist');
-    const rawList = data.watchlist || [];
-    // アーカイブ済み・即時アーカイブ済みを除外して描画
-    const list = rawList.filter(w => w.status !== 'archived');
-    watchlistCodesSet = new Set(rawList.map(w => w.code));
-    countEl.textContent = `（${list.length} 銘柄）`;
+        if (!list.length) {
+          el.innerHTML = '<div class="card"><div class="empty-msg">📭 ウォッチリストは空です。<br>分析後に「ウォッチリストに追加して」とClaudeに伝えると追加されます。</div></div>';
+          return;
+        }
 
-    if (!list.length) {
-      el.innerHTML = '<div class="card"><div class="empty-msg">📭 ウォッチリストは空です。<br>分析後に「ウォッチリストに追加して」とClaudeに伝えると追加されます。</div></div>';
-      return;
-    }
+        const STATUS_MAP = {
+          interested: { label: '💛 積極検討', cls: 'wstatus-interested' },
+          watching: { label: '👀 要観察', cls: 'wstatus-watching' },
+          archived: { label: '📦 アーカイブ', cls: 'wstatus-archived' },
+        };
 
-    const STATUS_MAP = {
-      interested: { label: '💛 積極検討', cls: 'wstatus-interested' },
-      watching:   { label: '👀 要観察',   cls: 'wstatus-watching'   },
-      archived:   { label: '📦 アーカイブ', cls: 'wstatus-archived' },
-    };
+        el.innerHTML = list.map(w => {
+          const reportUrl = manifestUrlMap[w.code];
+          const tag = reportUrl ? 'a' : 'div';
+          const hrefAttr = reportUrl ? `href="${reportUrl}" target="_blank"` : '';
+          const reportBadge = reportUrl
+            ? `<div class="wmeta" style="color:var(--accent); margin-top:6px; font-size:11px;">📊 分析レポートあり →</div>`
+            : '';
 
-    el.innerHTML = list.map(w => {
-      const reportUrl = manifestUrlMap[w.code];
-      const tag = reportUrl ? 'a' : 'div';
-      const hrefAttr = reportUrl ? `href="${reportUrl}" target="_blank"` : '';
-      const reportBadge = reportUrl
-        ? `<div class="wmeta" style="color:var(--accent); margin-top:6px; font-size:11px;">📊 分析レポートあり →</div>`
-        : '';
-
-      // ステータスセレクター（クリックで変更可能）
-      const st = STATUS_MAP[w.status] ?? STATUS_MAP['watching'];
-      const statusOptions = Object.entries(STATUS_MAP).map(([val, info]) =>
-        `<div class="wstatus-option${val === (w.status||'watching') ? ' active' : ''}" data-code="${w.code}" data-status="${val}" onclick="event.preventDefault();event.stopPropagation();onWatchlistStatusClick(this)">${info.label}</div>`
-      ).join('');
-      const statusBadge = `
+          // ステータスセレクター（クリックで変更可能）
+          const st = STATUS_MAP[w.status] ?? STATUS_MAP['watching'];
+          const statusOptions = Object.entries(STATUS_MAP).map(([val, info]) =>
+            `<div class="wstatus-option${val === (w.status || 'watching') ? ' active' : ''}" data-code="${w.code}" data-status="${val}" onclick="event.preventDefault();event.stopPropagation();onWatchlistStatusClick(this)">${info.label}</div>`
+          ).join('');
+          const statusBadge = `
         <span class="wstatus-wrap" id="wstwrap-${w.code}">
           <span class="wstatus ${st.cls}" id="wst-${w.code}" onclick="event.preventDefault();event.stopPropagation();toggleWatchlistStatusDropdown('${w.code}')">${st.label} ▾</span>
           <div class="wstatus-dropdown" id="wstd-${w.code}">${statusOptions}</div>
         </span>`;
 
-      // 予想PER バッジ（数値表示 + per_history 2件比較で矢印）
-      let perBadge = '';
-      if (w.per == null) {
-        perBadge = `<span class="wper-null">PER —</span>`;
-      } else {
-        const perVal = w.per;
-        const isRed = perVal < 0;
-        const dispVal = `${perVal > 0 ? '' : ''}${perVal}倍`;
+          // 予想PER バッジ（数値表示 + per_history 2件比較で矢印）
+          let perBadge = '';
+          if (w.per == null) {
+            perBadge = `<span class="wper-null">PER —</span>`;
+          } else {
+            const perVal = w.per;
+            const isRed = perVal < 0;
+            const dispVal = `${perVal > 0 ? '' : ''}${perVal}倍`;
 
-        // 矢印判定（per_history が2件以上ある場合）
-        const hist = w.per_history || [];
-        let arrow = '', arrowCls = '';
-        if (hist.length >= 2) {
-          const prev = hist[hist.length - 2].per;
-          const curr = hist[hist.length - 1].per;
-          if (prev != null && curr != null) {
-            if (isRed || prev < 0) {
-              // 赤字同士 or 前回赤字：絶対値で判定（小さい方が改善）
-              const absPrev = Math.abs(prev), absCurr = Math.abs(curr);
-              if (absCurr < absPrev - 0.05)      { arrow = ' ↑'; arrowCls = 'arrow-good'; }
-              else if (absCurr > absPrev + 0.05) { arrow = ' ↓'; arrowCls = 'arrow-bad'; }
-              else                                { arrow = ' →'; arrowCls = 'arrow-flat'; }
-            } else {
-              // 黒字同士：PER小さいほど割安
-              if (curr < prev - 0.05)      { arrow = ' ↓'; arrowCls = 'arrow-good'; } // 下がった=割安化
-              else if (curr > prev + 0.05) { arrow = ' ↑'; arrowCls = 'arrow-bad'; }  // 上がった=割高化
-              else                          { arrow = ' →'; arrowCls = 'arrow-flat'; }
+            // 矢印判定（per_history が2件以上ある場合）
+            const hist = w.per_history || [];
+            let arrow = '', arrowCls = '';
+            if (hist.length >= 2) {
+              const prev = hist[hist.length - 2].per;
+              const curr = hist[hist.length - 1].per;
+              if (prev != null && curr != null) {
+                if (isRed || prev < 0) {
+                  // 赤字同士 or 前回赤字：絶対値で判定（小さい方が改善）
+                  const absPrev = Math.abs(prev), absCurr = Math.abs(curr);
+                  if (absCurr < absPrev - 0.05) { arrow = ' ↑'; arrowCls = 'arrow-good'; }
+                  else if (absCurr > absPrev + 0.05) { arrow = ' ↓'; arrowCls = 'arrow-bad'; }
+                  else { arrow = ' →'; arrowCls = 'arrow-flat'; }
+                } else {
+                  // 黒字同士：PER小さいほど割安
+                  if (curr < prev - 0.05) { arrow = ' ↓'; arrowCls = 'arrow-good'; } // 下がった=割安化
+                  else if (curr > prev + 0.05) { arrow = ' ↑'; arrowCls = 'arrow-bad'; }  // 上がった=割高化
+                  else { arrow = ' →'; arrowCls = 'arrow-flat'; }
+                }
+              }
             }
+
+            const baseCls = isRed ? 'wper-red' : 'wper';
+            perBadge = `<span class="${baseCls}">PER ${dispVal}<span class="${arrowCls}">${arrow}</span></span>`;
           }
-        }
 
-        const baseCls = isRed ? 'wper-red' : 'wper';
-        perBadge = `<span class="${baseCls}">PER ${dispVal}<span class="${arrowCls}">${arrow}</span></span>`;
-      }
-
-      return `
+          return `
         <${tag} class="watch-card status-${w.status ?? 'watching'}" ${hrefAttr} data-code="${w.code}" style="${reportUrl ? 'text-decoration:none;' : ''}">
 
           <div class="wname">${w.name}</div>
@@ -721,184 +1518,184 @@ async function loadWatchlist() {
           <div class="wmeta">追加日: ${w.added_date ?? '—'}</div>
           ${reportBadge}
         </${tag}>`;
-    }).join('');
-  } catch(e) {
-    el.innerHTML = `<div class="card"><div class="error-msg">⚠️ ウォッチリスト読み込み失敗<br><small>${e.message}</small></div>`;
-  }
-}
-
-// ── manifest（個別分析ページ一覧） ───────────────────────
-async function loadManifest() {
-  const el = document.getElementById('manifestList');
-  try {
-    // GitHub Raw ではなく Render API 経由で取得する。
-    // 理由: delete_report が manifest.json を更新した直後に loadAll() が走ると、
-    //       GitHub Raw CDN のキャッシュ（数十秒〜数分）により古いデータが返り
-    //       削除したカードが復活してしまう問題を根本解決するため。
-    // Render はローカルの manifest.json を save_json() で更新済みなので常に最新を返す。
-    const data = await fetchRender('/api/manifest');
-    const stocks = data.stocks || [];
-
-    // ウォッチリストカードのリンク用に code → url をキャッシュ
-    manifestUrlMap = {};
-    stocks.forEach(s => {
-      if (s.url || s.file) manifestUrlMap[s.code] = s.url ?? s.file;
-    });
-
-    if (!stocks.length) {
-      el.innerHTML = '<div class="card"><div class="empty-msg">📭 まだ分析レポートがありません。<br>KabuMartのスクショをClaudeに貼り付けると分析レポートが生成されます。</div></div>';
-      return;
+        }).join('');
+      } catch (e) {
+        el.innerHTML = `<div class="card"><div class="error-msg">⚠️ ウォッチリスト読み込み失敗<br><small>${e.message}</small></div>`;
+      }
     }
 
-    // 新しい順に並べ替え（削除済みcodeは除外）
-    const sorted = [...stocks]
-      .sort((a, b) => (b.analyzed_date ?? '').localeCompare(a.analyzed_date ?? ''));
-    el.innerHTML = sorted.map(s => {
-      return `
+    // ── manifest（個別分析ページ一覧） ───────────────────────
+    async function loadManifest() {
+      const el = document.getElementById('manifestList');
+      try {
+        // GitHub Raw ではなく Render API 経由で取得する。
+        // 理由: delete_report が manifest.json を更新した直後に loadAll() が走ると、
+        //       GitHub Raw CDN のキャッシュ（数十秒〜数分）により古いデータが返り
+        //       削除したカードが復活してしまう問題を根本解決するため。
+        // Render はローカルの manifest.json を save_json() で更新済みなので常に最新を返す。
+        const data = await fetchRender('/api/manifest');
+        const stocks = data.stocks || [];
+
+        // ウォッチリストカードのリンク用に code → url をキャッシュ
+        manifestUrlMap = {};
+        stocks.forEach(s => {
+          if (s.url || s.file) manifestUrlMap[s.code] = s.url ?? s.file;
+        });
+
+        if (!stocks.length) {
+          el.innerHTML = '<div class="card"><div class="empty-msg">📭 まだ分析レポートがありません。<br>KabuMartのスクショをClaudeに貼り付けると分析レポートが生成されます。</div></div>';
+          return;
+        }
+
+        // 新しい順に並べ替え（削除済みcodeは除外）
+        const sorted = [...stocks]
+          .sort((a, b) => (b.analyzed_date ?? '').localeCompare(a.analyzed_date ?? ''));
+        el.innerHTML = sorted.map(s => {
+          return `
       <a class="manifest-card" href="${s.url ?? s.file}" target="_blank" data-code="${s.code}">
         <div class="mname">${s.name}</div>
         <div class="mcode">${s.code} ${s.kabumart_rank ? `<span class="badge ${rankBadgeColor(s.kabumart_rank)}" style="font-size:10px;">${s.kabumart_rank}</span>` : ''}</div>
         <div class="mdate">📅 分析日: ${s.analyzed_date ?? '—'}</div>
       </a>`;
-    }).join('');
-  } catch(e) {
-    el.innerHTML = `<div class="card"><div class="error-msg">⚠️ 分析レポート一覧の読み込み失敗<br><small>${e.message}</small></div>`;
-  }
-}
-
-// ── ウォッチリスト ステータス変更 ──────────────────────────
-const IDX_STATUS_MAP = {
-  interested: { label: '💛 積極検討', cls: 'wstatus-interested' },
-  watching:   { label: '👀 要観察',   cls: 'wstatus-watching'   },
-  archived:   { label: '📦 アーカイブ', cls: 'wstatus-archived' },
-};
-
-function toggleWatchlistStatusDropdown(code) {
-  const dd = document.getElementById(`wstd-${code}`);
-  if (!dd) return;
-  const isOpen = dd.classList.contains('open');
-  // 他を全部閉じる
-  document.querySelectorAll('.wstatus-dropdown.open').forEach(el => el.classList.remove('open'));
-  if (!isOpen) dd.classList.add('open');
-}
-
-// ドロップダウン外クリックで閉じる
-document.addEventListener('click', e => {
-  // wstatus-wrap の内側クリックは無視（wstatus と wstatus-option は各自 stopPropagation 済み）
-  if (!e.target.closest('.wstatus-wrap')) {
-    document.querySelectorAll('.wstatus-dropdown.open').forEach(el => el.classList.remove('open'));
-  }
-});
-
-// ステータスオプションクリック（直接 onclick から呼ばれる）
-async function onWatchlistStatusClick(opt) {
-  const code = opt.dataset.code;
-  const newStatus = opt.dataset.status;
-  const badgeEl = document.getElementById(`wst-${code}`);
-  const ddEl = document.getElementById(`wstd-${code}`);
-  if (!badgeEl || !ddEl) return;
-
-  ddEl.classList.remove('open');
-
-  const oldLabel = badgeEl.textContent;
-  badgeEl.textContent = '更新中...';
-
-  try {
-    const res = await fetch(`${RENDER_BASE}/api/watchlist/status`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, status: newStatus }),
-    });
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.detail ?? json.error);
-
-    // アーカイブにしたらカードを非表示
-    if (newStatus === 'archived') {
-      const card = badgeEl.closest('.watch-card');
-      if (card) card.remove();
-      return;
+        }).join('');
+      } catch (e) {
+        el.innerHTML = `<div class="card"><div class="error-msg">⚠️ 分析レポート一覧の読み込み失敗<br><small>${e.message}</small></div>`;
+      }
     }
 
-    // バッジ更新
-    const info = IDX_STATUS_MAP[newStatus];
-    badgeEl.textContent = info.label + ' ▾';
-    badgeEl.className = `wstatus ${info.cls}`;
-    // カードの左ボーダー更新
-    const card = badgeEl.closest('.watch-card');
-    if (card) {
-      card.className = card.className.replace(/status-\w+/, `status-${newStatus}`);
-    }
-    // ドロップダウンのactive更新
-    ddEl.querySelectorAll('.wstatus-option').forEach(o => {
-      o.classList.toggle('active', o.dataset.status === newStatus);
-    });
+    // ── ウォッチリスト ステータス変更 ──────────────────────────
+    const IDX_STATUS_MAP = {
+      interested: { label: '💛 積極検討', cls: 'wstatus-interested' },
+      watching: { label: '👀 要観察', cls: 'wstatus-watching' },
+      archived: { label: '📦 アーカイブ', cls: 'wstatus-archived' },
+    };
 
-  } catch(err) {
-    badgeEl.textContent = oldLabel;
-    alert(`ステータス更新に失敗しました: ${err.message}`);
-  }
-}
-
-
-
-// ── PER更新 ──────────────────────────────────────────────
-async function onUpdatePer() {
-  const btn = document.getElementById('perUpdateBtn');
-  btn.disabled = true;
-  btn.textContent = '⏳ PER取得中...';
-
-  try {
-    const res = await fetch(`${RENDER_BASE}/api/watchlist/update-per`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.detail ?? 'PER更新に失敗しました');
-
-    const errCount = json.errors?.length || 0;
-    const updCount = json.updated || 0;
-    if (errCount > 0) {
-      btn.textContent = `⚠️ ${updCount}件更新 / ${errCount}件エラー`;
-      btn.style.background = 'rgba(245,158,11,0.15)';
-      btn.style.color = 'var(--yellow)';
-      btn.style.borderColor = 'rgba(245,158,11,0.3)';
-    } else {
-      btn.textContent = `✅ ${updCount}件更新完了`;
-      btn.style.background = 'rgba(34,197,94,0.15)';
-      btn.style.color = 'var(--green)';
-      btn.style.borderColor = 'rgba(34,197,94,0.3)';
+    function toggleWatchlistStatusDropdown(code) {
+      const dd = document.getElementById(`wstd-${code}`);
+      if (!dd) return;
+      const isOpen = dd.classList.contains('open');
+      // 他を全部閉じる
+      document.querySelectorAll('.wstatus-dropdown.open').forEach(el => el.classList.remove('open'));
+      if (!isOpen) dd.classList.add('open');
     }
 
-    await loadWatchlist();
+    // ドロップダウン外クリックで閉じる
+    document.addEventListener('click', e => {
+      // wstatus-wrap の内側クリックは無視（wstatus と wstatus-option は各自 stopPropagation 済み）
+      if (!e.target.closest('.wstatus-wrap')) {
+        document.querySelectorAll('.wstatus-dropdown.open').forEach(el => el.classList.remove('open'));
+      }
+    });
 
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.textContent = '📊 PER更新';
-      btn.style.background = 'rgba(124,92,252,0.15)';
-      btn.style.color = '#a78bfa';
-      btn.style.borderColor = 'rgba(124,92,252,0.3)';
-    }, 3000);
+    // ステータスオプションクリック（直接 onclick から呼ばれる）
+    async function onWatchlistStatusClick(opt) {
+      const code = opt.dataset.code;
+      const newStatus = opt.dataset.status;
+      const badgeEl = document.getElementById(`wst-${code}`);
+      const ddEl = document.getElementById(`wstd-${code}`);
+      if (!badgeEl || !ddEl) return;
 
-  } catch(e) {
-    btn.textContent = '❌ 失敗';
-    btn.style.background = 'rgba(239,68,68,0.15)';
-    btn.style.color = 'var(--red)';
-    btn.style.borderColor = 'rgba(239,68,68,0.3)';
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.textContent = '📊 PER更新';
-      btn.style.background = 'rgba(124,92,252,0.15)';
-      btn.style.color = '#a78bfa';
-      btn.style.borderColor = 'rgba(124,92,252,0.3)';
-    }, 3000);
-  }
-}
+      ddEl.classList.remove('open');
 
-// ── 買い追加モーダル ──────────────────────────────────────
-function onOpenBuyModal() {
-  const overlay = document.createElement('div');
-  overlay.className = 'input-modal-overlay';
-  overlay.innerHTML = `
+      const oldLabel = badgeEl.textContent;
+      badgeEl.textContent = '更新中...';
+
+      try {
+        const res = await fetch(`${RENDER_BASE}/api/watchlist/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, status: newStatus }),
+        });
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.detail ?? json.error);
+
+        // アーカイブにしたらカードを非表示
+        if (newStatus === 'archived') {
+          const card = badgeEl.closest('.watch-card');
+          if (card) card.remove();
+          return;
+        }
+
+        // バッジ更新
+        const info = IDX_STATUS_MAP[newStatus];
+        badgeEl.textContent = info.label + ' ▾';
+        badgeEl.className = `wstatus ${info.cls}`;
+        // カードの左ボーダー更新
+        const card = badgeEl.closest('.watch-card');
+        if (card) {
+          card.className = card.className.replace(/status-\w+/, `status-${newStatus}`);
+        }
+        // ドロップダウンのactive更新
+        ddEl.querySelectorAll('.wstatus-option').forEach(o => {
+          o.classList.toggle('active', o.dataset.status === newStatus);
+        });
+
+      } catch (err) {
+        badgeEl.textContent = oldLabel;
+        alert(`ステータス更新に失敗しました: ${err.message}`);
+      }
+    }
+
+
+
+    // ── PER更新 ──────────────────────────────────────────────
+    async function onUpdatePer() {
+      const btn = document.getElementById('perUpdateBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ PER取得中...';
+
+      try {
+        const res = await fetch(`${RENDER_BASE}/api/watchlist/update-per`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.detail ?? 'PER更新に失敗しました');
+
+        const errCount = json.errors?.length || 0;
+        const updCount = json.updated || 0;
+        if (errCount > 0) {
+          btn.textContent = `⚠️ ${updCount}件更新 / ${errCount}件エラー`;
+          btn.style.background = 'rgba(245,158,11,0.15)';
+          btn.style.color = 'var(--yellow)';
+          btn.style.borderColor = 'rgba(245,158,11,0.3)';
+        } else {
+          btn.textContent = `✅ ${updCount}件更新完了`;
+          btn.style.background = 'rgba(34,197,94,0.15)';
+          btn.style.color = 'var(--green)';
+          btn.style.borderColor = 'rgba(34,197,94,0.3)';
+        }
+
+        await loadWatchlist();
+
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.textContent = '📊 PER更新';
+          btn.style.background = 'rgba(124,92,252,0.15)';
+          btn.style.color = '#a78bfa';
+          btn.style.borderColor = 'rgba(124,92,252,0.3)';
+        }, 3000);
+
+      } catch (e) {
+        btn.textContent = '❌ 失敗';
+        btn.style.background = 'rgba(239,68,68,0.15)';
+        btn.style.color = 'var(--red)';
+        btn.style.borderColor = 'rgba(239,68,68,0.3)';
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.textContent = '📊 PER更新';
+          btn.style.background = 'rgba(124,92,252,0.15)';
+          btn.style.color = '#a78bfa';
+          btn.style.borderColor = 'rgba(124,92,252,0.3)';
+        }, 3000);
+      }
+    }
+
+    // ── 買い追加モーダル ──────────────────────────────────────
+    function onOpenBuyModal() {
+      const overlay = document.createElement('div');
+      overlay.className = 'input-modal-overlay';
+      overlay.innerHTML = `
     <div class="input-modal">
       <h3>＋ 保有銘柄を追加</h3>
       <div class="field">
@@ -923,52 +1720,52 @@ function onOpenBuyModal() {
         <button class="modal-btn-ok" id="bm_ok">追加する</button>
       </div>
     </div>`;
-  document.body.appendChild(overlay);
+      document.body.appendChild(overlay);
 
-  const close = () => overlay.remove();
-  overlay.querySelector('#bm_cancel').onclick = close;
-  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+      const close = () => overlay.remove();
+      overlay.querySelector('#bm_cancel').onclick = close;
+      overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
 
-  overlay.querySelector('#bm_ok').onclick = async () => {
-    const code   = overlay.querySelector('#bm_code').value.trim().toUpperCase();
-    const name   = overlay.querySelector('#bm_name').value.trim();
-    const shares = parseInt(overlay.querySelector('#bm_shares').value, 10);
-    const price  = parseFloat(overlay.querySelector('#bm_price').value);
-    const errEl  = overlay.querySelector('#bm_err');
-    errEl.textContent = '';
+      overlay.querySelector('#bm_ok').onclick = async () => {
+        const code = overlay.querySelector('#bm_code').value.trim().toUpperCase();
+        const name = overlay.querySelector('#bm_name').value.trim();
+        const shares = parseInt(overlay.querySelector('#bm_shares').value, 10);
+        const price = parseFloat(overlay.querySelector('#bm_price').value);
+        const errEl = overlay.querySelector('#bm_err');
+        errEl.textContent = '';
 
-    if (!code)           { errEl.textContent = '銘柄コードを入力してください'; return; }
-    if (!name)           { errEl.textContent = '企業名を入力してください'; return; }
-    if (!shares || shares <= 0) { errEl.textContent = '株数を正しく入力してください'; return; }
-    if (isNaN(price) || price <= 0) { errEl.textContent = '取得単価を正しく入力してください'; return; }
+        if (!code) { errEl.textContent = '銘柄コードを入力してください'; return; }
+        if (!name) { errEl.textContent = '企業名を入力してください'; return; }
+        if (!shares || shares <= 0) { errEl.textContent = '株数を正しく入力してください'; return; }
+        if (isNaN(price) || price <= 0) { errEl.textContent = '取得単価を正しく入力してください'; return; }
 
-    const btn = overlay.querySelector('#bm_ok');
-    btn.disabled = true;
-    btn.textContent = '追加中...';
+        const btn = overlay.querySelector('#bm_ok');
+        btn.disabled = true;
+        btn.textContent = '追加中...';
 
-    try {
-      const res = await fetch(`${RENDER_BASE}/api/portfolio/buy`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, name, shares, price }),
-      });
-      const j = await res.json();
-      if (!res.ok) throw new Error(j.detail ?? '追加に失敗しました');
-      close();
-      await loadPortfolio();
-    } catch(e) {
-      errEl.textContent = e.message;
-      btn.disabled = false;
-      btn.textContent = '追加する';
+        try {
+          const res = await fetch(`${RENDER_BASE}/api/portfolio/buy`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, name, shares, price }),
+          });
+          const j = await res.json();
+          if (!res.ok) throw new Error(j.detail ?? '追加に失敗しました');
+          close();
+          await loadPortfolio();
+        } catch (e) {
+          errEl.textContent = e.message;
+          btn.disabled = false;
+          btn.textContent = '追加する';
+        }
+      };
     }
-  };
-}
 
-// ── 売却モーダル ──────────────────────────────────────────
-function onOpenSellModal(code, name, maxShares) {
-  const overlay = document.createElement('div');
-  overlay.className = 'input-modal-overlay';
-  overlay.innerHTML = `
+    // ── 売却モーダル ──────────────────────────────────────────
+    function onOpenSellModal(code, name, maxShares) {
+      const overlay = document.createElement('div');
+      overlay.className = 'input-modal-overlay';
+      overlay.innerHTML = `
     <div class="input-modal">
       <h3>📤 ${name}（${code}）</h3>
       <div class="sell-mode-tabs">
@@ -999,80 +1796,81 @@ function onOpenSellModal(code, name, maxShares) {
         <button class="modal-btn-danger" id="sm_ok">売却を記録する</button>
       </div>
     </div>`;
-  document.body.appendChild(overlay);
+      document.body.appendChild(overlay);
 
-  const close = () => overlay.remove();
-  overlay.querySelector('#sm_cancel').onclick = close;
-  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+      const close = () => overlay.remove();
+      overlay.querySelector('#sm_cancel').onclick = close;
+      overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
 
-  let mode = 'sell'; // 'sell' | 'delete'
-  const tabSell   = overlay.querySelector('#sm_tab_sell');
-  const tabDelete = overlay.querySelector('#sm_tab_delete');
-  const sellForm  = overlay.querySelector('#sm_sell_form');
-  const deleteForm = overlay.querySelector('#sm_delete_form');
-  const okBtn     = overlay.querySelector('#sm_ok');
+      let mode = 'sell'; // 'sell' | 'delete'
+      const tabSell = overlay.querySelector('#sm_tab_sell');
+      const tabDelete = overlay.querySelector('#sm_tab_delete');
+      const sellForm = overlay.querySelector('#sm_sell_form');
+      const deleteForm = overlay.querySelector('#sm_delete_form');
+      const okBtn = overlay.querySelector('#sm_ok');
 
-  tabSell.onclick = () => {
-    mode = 'sell';
-    tabSell.className   = 'sell-tab active-sell';
-    tabDelete.className = 'sell-tab';
-    tabDelete.style.color = '#8892a4';
-    sellForm.style.display  = '';
-    deleteForm.style.display = 'none';
-    okBtn.removeAttribute('style'); // インラインスタイルをリセットしてクラスを有効に
-    okBtn.className = 'modal-btn-danger';
-    okBtn.textContent = '売却を記録する';
-  };
-  tabDelete.onclick = () => {
-    mode = 'delete';
-    tabDelete.className = 'sell-tab active-delete';
-    tabSell.className   = 'sell-tab';
-    sellForm.style.display  = 'none';
-    deleteForm.style.display = '';
-    okBtn.removeAttribute('style');
-    okBtn.className = 'modal-btn-gray'; // グレー用クラスに切り替え
-    okBtn.textContent = 'ポートフォリオから削除';
-  };
+      tabSell.onclick = () => {
+        mode = 'sell';
+        tabSell.className = 'sell-tab active-sell';
+        tabDelete.className = 'sell-tab';
+        tabDelete.style.color = '#8892a4';
+        sellForm.style.display = '';
+        deleteForm.style.display = 'none';
+        okBtn.removeAttribute('style'); // インラインスタイルをリセットしてクラスを有効に
+        okBtn.className = 'modal-btn-danger';
+        okBtn.textContent = '売却を記録する';
+      };
+      tabDelete.onclick = () => {
+        mode = 'delete';
+        tabDelete.className = 'sell-tab active-delete';
+        tabSell.className = 'sell-tab';
+        sellForm.style.display = 'none';
+        deleteForm.style.display = '';
+        okBtn.removeAttribute('style');
+        okBtn.className = 'modal-btn-gray'; // グレー用クラスに切り替え
+        okBtn.textContent = 'ポートフォリオから削除';
+      };
 
-  okBtn.onclick = async () => {
-    const errEl = overlay.querySelector('#sm_err');
-    errEl.textContent = '';
-    okBtn.disabled = true;
+      okBtn.onclick = async () => {
+        const errEl = overlay.querySelector('#sm_err');
+        errEl.textContent = '';
+        okBtn.disabled = true;
 
-    try {
-      if (mode === 'sell') {
-        const shares = parseInt(overlay.querySelector('#sm_shares').value, 10);
-        const price  = parseFloat(overlay.querySelector('#sm_price').value);
-        if (!shares || shares <= 0)       { errEl.textContent = '株数を正しく入力してください'; okBtn.disabled = false; return; }
-        if (shares > maxShares)           { errEl.textContent = `保有株数（${maxShares}株）を超えています`; okBtn.disabled = false; return; }
-        if (isNaN(price) || price <= 0)   { errEl.textContent = '売却単価を正しく入力してください'; okBtn.disabled = false; return; }
+        try {
+          if (mode === 'sell') {
+            const shares = parseInt(overlay.querySelector('#sm_shares').value, 10);
+            const price = parseFloat(overlay.querySelector('#sm_price').value);
+            if (!shares || shares <= 0) { errEl.textContent = '株数を正しく入力してください'; okBtn.disabled = false; return; }
+            if (shares > maxShares) { errEl.textContent = `保有株数（${maxShares}株）を超えています`; okBtn.disabled = false; return; }
+            if (isNaN(price) || price <= 0) { errEl.textContent = '売却単価を正しく入力してください'; okBtn.disabled = false; return; }
 
-        const res = await fetch(`${RENDER_BASE}/api/portfolio/sell`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, shares, price }),
-        });
-        const j = await res.json();
-        if (!res.ok) throw new Error(j.detail ?? '売却記録に失敗しました');
-      } else {
-        // 入力ミス削除: 全株売却として扱う（price=0は不可なのでAPI側で対応）
-        const res = await fetch(`${RENDER_BASE}/api/portfolio/delete/${code}`, { method: 'DELETE' });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j.detail ?? '削除に失敗しました');
+            const res = await fetch(`${RENDER_BASE}/api/portfolio/sell`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code, shares, price }),
+            });
+            const j = await res.json();
+            if (!res.ok) throw new Error(j.detail ?? '売却記録に失敗しました');
+          } else {
+            // 入力ミス削除: 全株売却として扱う（price=0は不可なのでAPI側で対応）
+            const res = await fetch(`${RENDER_BASE}/api/portfolio/delete/${code}`, { method: 'DELETE' });
+            if (!res.ok) {
+              const j = await res.json().catch(() => ({}));
+              throw new Error(j.detail ?? '削除に失敗しました');
+            }
+          }
+          close();
+          await loadPortfolio();
+        } catch (e) {
+          errEl.textContent = e.message;
+          okBtn.disabled = false;
         }
-      }
-      close();
-      await loadPortfolio();
-    } catch(e) {
-      errEl.textContent = e.message;
-      okBtn.disabled = false;
+      };
     }
-  };
-}
 
-// ── 初回ロード ────────────────────────────────────────────
-loadAll();
-</script>
+    // ── 初回ロード ────────────────────────────────────────────
+    loadAll();
+  </script>
 </body>
+
 </html>
