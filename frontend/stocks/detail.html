@@ -898,7 +898,24 @@
       if (latestPer != null && latestPer < 0) perBadge = '<span class="metric-badge m-bad">赤字</span>';
 
       // Valuation table
-      const valRows = (fin.valuation_table || []).map(row => {
+      let valTable = [...(fin.valuation_table || [])];
+      if (fin.roe != null && !valTable.some(r => r.label.includes('ROE'))) {
+        let insertIdx = valTable.findIndex(r => r.label.includes('PBR'));
+        if (insertIdx === -1) insertIdx = valTable.findIndex(r => r.label.includes('PER'));
+        const roeRow = {
+          label: 'ROE（自己資本利益率）',
+          value: fin.roe.toFixed(1) + '%',
+          benchmark: '目安: 10%以上',
+          status: fin.roe >= 10 ? 'good' : (fin.roe >= 5 ? 'warn' : 'bad'),
+          badge: fin.roe >= 10 ? '高ROE' : (fin.roe >= 5 ? '平均的' : '低水準'),
+          badge_color: fin.roe >= 10 ? 'green' : (fin.roe >= 5 ? 'orange' : 'red'),
+          note: fin.roe_note || '自己資本（株主のお金）を使ってどれだけ効率よく利益を生み出しているかを示します。'
+        };
+        if (insertIdx !== -1) valTable.splice(insertIdx + 1, 0, roeRow);
+        else valTable.push(roeRow);
+      }
+
+      const valRows = valTable.map(row => {
         const cls = row.status === 'good' ? 'val-good' : row.status === 'warn' ? 'val-warn' : row.status === 'bad' ? 'val-bad' : '';
         const badgeHtml = row.badge ? `<span class="badge badge-${row.badge_color || 'gray'}" style="font-size:11px">${row.badge}</span>` : '—';
         let valText = row.value;
