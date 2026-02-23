@@ -1477,24 +1477,27 @@
       badgeEl.className = `wstatus ${info.cls}`;
       ddEl.querySelectorAll('.wstatus-option').forEach(o => o.classList.toggle('active', o.dataset.status === newStatus));
       
-      if (card) {
-        card.style.opacity = '0.5';
-        card.style.pointerEvents = 'none';
-        if (newStatus !== 'archived') {
-          card.className = oldCardClass.replace(/status-\w+/, `status-${newStatus}`);
-        }
+      const wrapEl = badgeEl.closest('.wstatus-wrap') || badgeEl;
+      wrapEl.style.opacity = '0.5';
+      wrapEl.style.pointerEvents = 'none';
+
+      if (card && newStatus !== 'archived') {
+        card.className = oldCardClass.replace(/status-\w+/, `status-${newStatus}`);
       }
 
       try {
         const res = await fetch(`${RENDER_BASE}/api/watchlist/status`, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, status: newStatus }) });
         const json = await res.json().catch(()=>({})); if (!json.ok && res.status !== 200) throw new Error(json.detail ?? json.error);
+        
+        wrapEl.style.opacity = ''; 
+        wrapEl.style.pointerEvents = '';
         if (newStatus === 'archived' && card) card.remove();
-        else if (card) { card.style.opacity = ''; card.style.pointerEvents = ''; }
       } catch (err) {
         badgeEl.textContent = oldLabel; badgeEl.className = oldClass;
         ddEl.querySelectorAll('.wstatus-option').forEach(o => o.classList.remove('active'));
+        wrapEl.style.opacity = ''; 
+        wrapEl.style.pointerEvents = '';
         if (card) {
-          card.style.opacity = ''; card.style.pointerEvents = '';
           card.className = oldCardClass;
         }
         alert(`ステータス更新失敗: ${err.message}`);
