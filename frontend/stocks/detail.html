@@ -1114,7 +1114,8 @@
     // ── PER History Chart ──
     function drawPerHistory(perHistory) {
       const ctx = document.getElementById('perChart'); if (!ctx) return;
-      const labels = perHistory.map(h => h.date), values = perHistory.map(h => h.per);
+      const sortedHist = [...perHistory].sort((a, b) => new Date(a.date) - new Date(b.date));
+      const labels = sortedHist.map(h => h.date), values = sortedHist.map(h => h.per);
       const pointColors = values.map(v => v == null ? 'rgba(136,146,164,.5)' : v < 0 ? '#ef4444' : '#22c55e');
       new Chart(ctx.getContext('2d'), { type: 'line', data: { labels, datasets: [{ label: '予想PER(倍)', data: values, borderColor: '#4a9eff', backgroundColor: 'rgba(74,158,255,.08)', fill: true, borderWidth: 2, pointRadius: 5, pointBackgroundColor: pointColors, pointBorderColor: '#fff', pointBorderWidth: 1.5, tension: .3, spanGaps: true }, { label: '黒字転換ライン', data: labels.map(() => 0), borderColor: 'rgba(255,255,255,.15)', borderWidth: 1, borderDash: [4, 4], pointRadius: 0, fill: false }] }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1a1d2e', borderColor: '#2d3252', borderWidth: 1, titleColor: '#94a3c8', bodyColor: '#e2e8f0', callbacks: { label: ctx => { if (ctx.datasetIndex === 1) return null; const v = ctx.parsed.y; return v == null ? 'データなし' : v < 0 ? `PER ${v}倍（赤字）` : `PER ${v}倍`; } } } }, scales: { x: { ticks: { color: '#8892a4', maxTicksLimit: 8, maxRotation: 0 }, grid: { color: 'rgba(45,50,82,.5)' } }, y: { ticks: { color: '#8892a4', callback: v => v === 0 ? '0（黒字転換）' : `${v}倍` }, grid: { color: 'rgba(45,50,82,.5)' } } } } });
     }
