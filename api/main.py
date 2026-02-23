@@ -370,77 +370,26 @@ def update_watchlist_status(req: WatchlistStatusRequest):
 
 @app.post("/api/watchlist/update-per")
 def update_watchlist_per():
-    """ウォッチリスト銘柄の予想PERをyfinanceから一括更新する（archived以外）。"""
-    if not YFINANCE_AVAILABLE:
-        raise HTTPException(status_code=503, detail="yfinanceが利用できません")
-
+    """ウォッチリスト銘柄の予想PER更新をGitHub Actionsにリクエストする。"""
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        raise HTTPException(status_code=500, detail="GITHUB_TOKENが設定されていません")
+    
+    url = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO_ANALYZER}/actions/workflows/update-per.yml/dispatches"
+    headers = _gh_headers(token)
+    data = json.dumps({"ref": GITHUB_BRANCH_ANALYZER}).encode("utf-8")
+    
     try:
-        data = github_fetch_json(GH_WATCHLIST_PATH)
-    except FileNotFoundError:
-        return {"updated": 0, "results": [], "errors": []}
+        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+        with urllib.request.urlopen(req) as res:
+            if res.status != 204:
+                raise RuntimeError(f"GitHub API Error: {res.status}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    today = datetime.now().strftime("%Y-%m-%d")
-    results = []
-    errors = []
-
-    for entry in data.get("watchlist", []):
-        if entry.get("status") == "archived":
-            continue
-
-        code = entry["code"]
-        try:
-            import requests
-            session = requests.Session()
-            session.headers.update({
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                "Accept-Language": "ja,en-US;q=0.9,en;q=0.8"
-            })
-            ticker = yf.Ticker(f"{code}.T", session=session)
-            info = ticker.info
-            per = info.get("forwardPE")
-            if per is None:
-                per = info.get("trailingPE")
-            if per is not None:
-                per = round(float(per), 1)
-
-            old_per = entry.get("per")
-            entry["per"] = per
-
-            history = entry.get("per_history", [])
-            same_day = [h for h in history if h["date"] == today]
-            if same_day:
-                same_day[0]["per"] = per
-                same_day[0]["source"] = "yfinance"
-            else:
-                history.append({"date": today, "per": per, "source": "yfinance"})
-            entry["per_history"] = history
-
-            results.append({
-                "code": code,
-                "name": entry.get("name", ""),
-                "old_per": old_per,
-                "new_per": per,
-            })
-        except Exception as e:
-            errors.append({"code": code, "name": entry.get("name", ""), "error": str(e)})
-
-    if results:
-        try:
-            github_update_json(
-                GH_WATCHLIST_PATH, data,
-                f"watchlist: {len(results)}銘柄のPERを一括更新",
-            )
-        except RuntimeError as e:
-            raise HTTPException(status_code=500, detail=f"GitHub保存失敗: {e}")
+        raise HTTPException(status_code=500, detail=f"GitHub Actionsの起動に失敗しました: {e}")
 
     return {
-        "updated": len(results),
-        "results": results,
-        "errors": errors,
-        "checked_at": datetime.now().isoformat(),
+        "ok": True,
+        "message": "GitHub ActionsへPER更新リクエストを送信しました。1〜2分後にリロードして確認してください。"
     }
 
 

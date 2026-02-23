@@ -1506,18 +1506,16 @@
 
     async function onUpdatePer() {
       const btn = document.getElementById('perUpdateBtn');
-      btn.disabled = true; btn.textContent = '⏳ PER取得中...';
+      btn.disabled = true; btn.textContent = '⏳ 送信中...';
       try {
         const res = await fetch(`${RENDER_BASE}/api/watchlist/update-per`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
-        const json = await res.json(); if (!res.ok) throw new Error(json.detail ?? 'PER更新失敗');
-        const errCnt = json.errors?.length || 0, updCnt = json.updated || 0;
-        if (errCnt > 0) { btn.textContent = `⚠️ ${updCnt}件更新/${errCnt}件エラー`; btn.style.background = 'rgba(245,158,11,.15)'; btn.style.color = 'var(--yellow)'; btn.style.borderColor = 'rgba(245,158,11,.3)'; }
-        else { btn.textContent = `✅ ${updCnt}件更新完了`; btn.style.background = 'rgba(34,197,94,.15)'; btn.style.color = 'var(--green)'; btn.style.borderColor = 'rgba(34,197,94,.3)'; }
-        await loadManifest();
-        setTimeout(() => { btn.disabled = false; btn.textContent = '📊 PER更新'; btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = ''; }, 3000);
+        const json = await res.json().catch(()=>({})); if (!res.ok) throw new Error(json.detail ?? 'リクエスト失敗');
+        btn.textContent = `✅ 送信完了`; btn.style.background = 'rgba(34,197,94,.15)'; btn.style.color = 'var(--green)'; btn.style.borderColor = 'rgba(34,197,94,.3)';
+        alert(json.message || "GitHub ActionsへPER更新リクエストを送信しました。\n裏側で約1〜2分かけて最新データが取得されますので、後ほどページをリロードして確認してください。");
+        setTimeout(() => { btn.disabled = false; btn.innerHTML = '<span class="icon">📊</span> PER更新'; btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = ''; }, 5000);
       } catch (e) {
-        btn.textContent = '❌ 失敗'; btn.style.background = 'rgba(239,68,68,.15)'; btn.style.color = 'var(--red)';
-        setTimeout(() => { btn.disabled = false; btn.textContent = '📊 PER更新'; btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = ''; }, 3000);
+        btn.textContent = `⚠️ 失敗: ${e.message}`; btn.style.background = 'rgba(239,68,68,.15)'; btn.style.color = 'var(--red)';
+        setTimeout(() => { btn.disabled = false; btn.innerHTML = '<span class="icon">📊</span> PER更新'; btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = ''; }, 5000);
       }
     }
 
