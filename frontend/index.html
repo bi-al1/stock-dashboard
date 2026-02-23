@@ -1466,16 +1466,38 @@
       const badgeEl = document.getElementById(`wst-${code}`), ddEl = document.getElementById(`wstd-${code}`);
       if (!badgeEl || !ddEl) return;
       ddEl.classList.remove('open');
-      const oldLabel = badgeEl.textContent; badgeEl.textContent = '更新中...';
+      const oldLabel = badgeEl.textContent, oldClass = badgeEl.className;
+      const card = badgeEl.closest('.watch-card');
+      const oldCardClass = card ? card.className : '';
+
+      // Optimistic update
+      const info = IDX_STATUS_MAP[newStatus] || IDX_STATUS_MAP['archived'];
+      badgeEl.textContent = info.label + ' ▾';
+      badgeEl.className = `wstatus ${info.cls}`;
+      ddEl.querySelectorAll('.wstatus-option').forEach(o => o.classList.toggle('active', o.dataset.status === newStatus));
+      
+      if (card) {
+        if (newStatus === 'archived') {
+          card.style.opacity = '0.5';
+          card.style.pointerEvents = 'none';
+        } else {
+          card.className = oldCardClass.replace(/status-\w+/, `status-${newStatus}`);
+        }
+      }
+
       try {
         const res = await fetch(`${RENDER_BASE}/api/watchlist/status`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, status: newStatus }) });
         const json = await res.json(); if (!json.ok) throw new Error(json.detail ?? json.error);
-        if (newStatus === 'archived') { const card = badgeEl.closest('.watch-card'); if (card) card.remove(); return; }
-        const info = IDX_STATUS_MAP[newStatus];
-        badgeEl.textContent = info.label + ' ▾'; badgeEl.className = `wstatus ${info.cls}`;
-        const card = badgeEl.closest('.watch-card'); if (card) card.className = card.className.replace(/status-\w+/, `status-${newStatus}`);
-        ddEl.querySelectorAll('.wstatus-option').forEach(o => o.classList.toggle('active', o.dataset.status === newStatus));
-      } catch (err) { badgeEl.textContent = oldLabel; alert(`ステータス更新失敗: ${err.message}`); }
+        if (newStatus === 'archived' && card) card.remove();
+      } catch (err) {
+        badgeEl.textContent = oldLabel; badgeEl.className = oldClass;
+        ddEl.querySelectorAll('.wstatus-option').forEach(o => o.classList.remove('active'));
+        if (card) {
+          if (newStatus === 'archived') { card.style.opacity = ''; card.style.pointerEvents = ''; }
+          else { card.className = oldCardClass; }
+        }
+        alert(`ステータス更新失敗: ${err.message}`);
+      }
     }
 
     async function onUpdatePer() {

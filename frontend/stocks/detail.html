@@ -1067,12 +1067,22 @@
     }
     async function updateStatus(code, newStatus, selEl, toastEl) {
       selEl.querySelector('.status-dropdown').classList.remove('open');
-      toastEl.className = 'status-toast status-saving'; toastEl.textContent = '更新中...'; toastEl.style.display = '';
+      const oldHTML = selEl.innerHTML;
+
+      // Optimistic update
+      selEl.innerHTML = buildSelectorHTML(newStatus);
+      toastEl.className = 'status-toast status-saving'; toastEl.textContent = '保存中...'; toastEl.style.display = '';
+
       try {
         const res = await fetch(`${RENDER_BASE}/api/watchlist/status`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, status: newStatus }) });
         const json = await res.json(); if (!json.ok) throw new Error(json.detail ?? json.error);
-        selEl.innerHTML = buildSelectorHTML(newStatus); toastEl.style.display = 'none';
-      } catch (e) { toastEl.className = 'status-toast err'; toastEl.textContent = `⚠️ ${e.message}`; setTimeout(() => { toastEl.style.display = 'none'; }, 3000); }
+        toastEl.style.display = 'none';
+      } catch (e) {
+        // Revert on Failure
+        selEl.innerHTML = oldHTML;
+        toastEl.className = 'status-toast err'; toastEl.textContent = `⚠️ ${e.message}`; 
+        setTimeout(() => { toastEl.style.display = 'none'; }, 3000); 
+      }
     }
 
     // ── Price Chart ──
