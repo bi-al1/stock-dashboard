@@ -1338,7 +1338,7 @@
         const evalAmt = h.current_price ? h.current_price * h.shares : null;
         const alertLevel = healthData?.results?.find(r => r.code === h.code)?.alert;
         const alertBadge = alertLevel ? `<span class="badge badge-${alertLevel.level === 'green' ? 'green' : alertLevel.level === 'yellow' ? 'orange' : alertLevel.level === 'orange' ? 'orange' : 'red'}" style="font-size:9px">${alertLevel.label}</span>` : '';
-        return `<tr>
+        return `<tr id="tr-hold-${h.code}">
       <td>${stockNameHtml(h.code, h.name)}</td>
       <td>${fmt(h.shares)}株</td><td>¥${fmt(h.avg_cost)}</td>
       <td>${h.current_price ? '¥' + fmt(h.current_price) : '<span style="color:var(--muted)">—</span>'}</td>
@@ -1388,11 +1388,13 @@
       ov.addEventListener('click', e => { if (e.target === ov) close(); });
       ov.querySelector('#dt_ok').onclick = async () => {
         close(); // Optimistic close
+        const row = btn.closest('tr');
+        if (row) { row.style.opacity = '0.5'; row.style.pointerEvents = 'none'; }
         try {
           const res = await fetch(`${RENDER_BASE}/api/portfolio/trade/${idx}`, { method: 'DELETE', keepalive: true });
           if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.detail ?? '削除失敗'); }
           await loadPortfolio();
-        } catch (e) { alert(`削除失敗: ${e.message}`); await loadPortfolio(); }
+        } catch (e) { alert(`削除失敗: ${e.message}`); if (row) { row.style.opacity = '1'; row.style.pointerEvents = 'auto'; } await loadPortfolio(); }
       };
     }
 
@@ -1686,6 +1688,11 @@
           sellBody = { code, shares, price };
         }
         close(); // Optimistic close after validation
+
+        // Optimistic row update
+        const tr = document.getElementById(`tr-hold-${code}`);
+        if (tr) { tr.style.opacity = '0.5'; tr.style.pointerEvents = 'none'; }
+
         try {
           if (mode === 'sell') {
             const res = await fetch(`${RENDER_BASE}/api/portfolio/sell`, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sellBody) });
@@ -1695,7 +1702,11 @@
             if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.detail ?? '削除失敗'); }
           }
           await loadPortfolio();
-        } catch (e) { alert(`処理失敗: ${e.message}`); await loadPortfolio(); }
+        } catch (e) { 
+          alert(`処理失敗: ${e.message}`); 
+          if (tr) { tr.style.opacity = '1'; tr.style.pointerEvents = 'auto'; }
+          await loadPortfolio(); 
+        }
       };
     }
 
