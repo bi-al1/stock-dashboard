@@ -1045,17 +1045,19 @@
       const note = rank ? `総合スコア ${rank} (${score}/10)` : '';
       const per = fin?.per ?? null;
       btn.onclick = async () => {
-        btn.textContent = '⏳ 追加中...'; btn.disabled = true;
+        // Optimistic UI update
+        btn.textContent = '✅ 追加しました'; 
+        btn.classList.add('added');
+        setTimeout(() => { container.innerHTML = ''; renderStatusSelector({ status: 'archived' }, company.code); }, 800);
+
         try {
           const body = { code: company.code, name: company.name, note, kabumart_rank: rank };
           if (per != null) body.per = per;
-          const res = await fetch(`${RENDER_BASE}/api/watchlist`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-          const json = await res.json();
-          if (res.status === 409) { btn.textContent = '✅ 登録済み'; btn.classList.add('added'); }
-          else if (!res.ok) throw new Error(json.detail ?? 'エラー');
-          else { btn.textContent = '✅ 追加しました'; btn.classList.add('added'); }
-          setTimeout(() => { container.innerHTML = ''; renderStatusSelector({ status: 'archived' }, company.code); }, 800);
-        } catch (e) { btn.textContent = '⚠️ 失敗'; btn.disabled = false; setTimeout(() => { btn.textContent = '＋ ウォッチリストに追加'; btn.classList.remove('added'); }, 2000); }
+          await fetch(`${RENDER_BASE}/api/watchlist`, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        } catch (e) { 
+          // Silently handle backend failure since UI is optimistic, but keepalive ensures it finishes usually
+          console.error('Watchlist add failed:', e); 
+        }
       };
     }
 
@@ -1091,8 +1093,8 @@
       toastEl.className = 'status-toast status-saving'; toastEl.textContent = '保存中...'; toastEl.style.display = '';
 
       try {
-        const res = await fetch(`${RENDER_BASE}/api/watchlist/status`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, status: newStatus }) });
-        const json = await res.json(); if (!json.ok) throw new Error(json.detail ?? json.error);
+        const res = await fetch(`${RENDER_BASE}/api/watchlist/status`, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, status: newStatus }) });
+        const json = await res.json().catch(()=>({})); if (!json.ok && res.status !== 200) throw new Error(json.detail ?? json.error);
         toastEl.style.display = 'none';
       } catch (e) {
         // Revert on Failure

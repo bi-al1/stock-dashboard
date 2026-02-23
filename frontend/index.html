@@ -1387,13 +1387,12 @@
       ov.querySelector('#dt_cancel').onclick = close;
       ov.addEventListener('click', e => { if (e.target === ov) close(); });
       ov.querySelector('#dt_ok').onclick = async () => {
-        const okBtn = ov.querySelector('#dt_ok'); const err = ov.querySelector('#dt_err');
-        okBtn.disabled = true; okBtn.textContent = '削除中...';
+        close(); // Optimistic close
         try {
-          const res = await fetch(`${RENDER_BASE}/api/portfolio/trade/${idx}`, { method: 'DELETE' });
+          const res = await fetch(`${RENDER_BASE}/api/portfolio/trade/${idx}`, { method: 'DELETE', keepalive: true });
           if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.detail ?? '削除失敗'); }
-          close(); await loadPortfolio();
-        } catch (e) { err.textContent = `削除失敗: ${e.message}`; okBtn.disabled = false; okBtn.textContent = '削除する'; }
+          await loadPortfolio();
+        } catch (e) { alert(`削除失敗: ${e.message}`); await loadPortfolio(); }
       };
     }
 
@@ -1486,8 +1485,8 @@
       }
 
       try {
-        const res = await fetch(`${RENDER_BASE}/api/watchlist/status`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, status: newStatus }) });
-        const json = await res.json(); if (!json.ok) throw new Error(json.detail ?? json.error);
+        const res = await fetch(`${RENDER_BASE}/api/watchlist/status`, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, status: newStatus }) });
+        const json = await res.json().catch(()=>({})); if (!json.ok && res.status !== 200) throw new Error(json.detail ?? json.error);
         if (newStatus === 'archived' && card) card.remove();
       } catch (err) {
         badgeEl.textContent = oldLabel; badgeEl.className = oldClass;
@@ -1648,12 +1647,12 @@
         const err = ov.querySelector('#bm_err'); err.textContent = '';
         if (!code) { err.textContent = '銘柄コードを入力'; return; } if (!name) { err.textContent = '企業名を入力'; return; }
         if (!shares || shares <= 0) { err.textContent = '株数を正しく入力'; return; } if (isNaN(price) || price <= 0) { err.textContent = '取得単価を正しく入力'; return; }
-        const btn = ov.querySelector('#bm_ok'); btn.disabled = true; btn.textContent = '追加中...';
+        close(); // Optimistic close after validation
         try {
-          const res = await fetch(`${RENDER_BASE}/api/portfolio/buy`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, name, shares, price }) });
-          const j = await res.json(); if (!res.ok) throw new Error(j.detail ?? '追加失敗');
-          close(); await loadPortfolio();
-        } catch (e) { err.textContent = e.message; btn.disabled = false; btn.textContent = '追加する'; }
+          const res = await fetch(`${RENDER_BASE}/api/portfolio/buy`, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, name, shares, price }) });
+          const j = await res.json().catch(()=>({})); if (!res.ok) throw new Error(j.detail ?? '追加失敗');
+          await loadPortfolio();
+        } catch (e) { alert(`追加失敗: ${e.message}`); await loadPortfolio(); }
       };
     }
 
@@ -1677,21 +1676,26 @@
       tabSell.onclick = () => { mode = 'sell'; tabSell.className = 'sell-tab active-sell'; tabDel.className = 'sell-tab'; tabDel.style.color = '#8892a4'; sellForm.style.display = ''; delForm.style.display = 'none'; okBtn.removeAttribute('style'); okBtn.className = 'modal-btn-danger'; okBtn.textContent = '売却を記録する'; };
       tabDel.onclick = () => { mode = 'delete'; tabDel.className = 'sell-tab active-delete'; tabSell.className = 'sell-tab'; sellForm.style.display = 'none'; delForm.style.display = ''; okBtn.removeAttribute('style'); okBtn.className = 'modal-btn-gray'; okBtn.textContent = 'ポートフォリオから削除'; };
       okBtn.onclick = async () => {
-        const err = ov.querySelector('#sm_err'); err.textContent = ''; okBtn.disabled = true;
+        const err = ov.querySelector('#sm_err'); err.textContent = '';
+        let sellBody = null;
+        if (mode === 'sell') {
+          const shares = parseInt(ov.querySelector('#sm_shares').value, 10), price = parseFloat(ov.querySelector('#sm_price').value);
+          if (!shares || shares <= 0) { err.textContent = '株数を正しく入力'; return; }
+          if (shares > maxShares) { err.textContent = `保有株数（${maxShares}株）を超えています`; return; }
+          if (isNaN(price) || price <= 0) { err.textContent = '売却単価を正しく入力'; return; }
+          sellBody = { code, shares, price };
+        }
+        close(); // Optimistic close after validation
         try {
           if (mode === 'sell') {
-            const shares = parseInt(ov.querySelector('#sm_shares').value, 10), price = parseFloat(ov.querySelector('#sm_price').value);
-            if (!shares || shares <= 0) { err.textContent = '株数を正しく入力'; okBtn.disabled = false; return; }
-            if (shares > maxShares) { err.textContent = `保有株数（${maxShares}株）を超えています`; okBtn.disabled = false; return; }
-            if (isNaN(price) || price <= 0) { err.textContent = '売却単価を正しく入力'; okBtn.disabled = false; return; }
-            const res = await fetch(`${RENDER_BASE}/api/portfolio/sell`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, shares, price }) });
-            const j = await res.json(); if (!res.ok) throw new Error(j.detail ?? '売却失敗');
+            const res = await fetch(`${RENDER_BASE}/api/portfolio/sell`, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sellBody) });
+            const j = await res.json().catch(()=>({})); if (!res.ok) throw new Error(j.detail ?? '売却失敗');
           } else {
-            const res = await fetch(`${RENDER_BASE}/api/portfolio/delete/${code}`, { method: 'DELETE' });
+            const res = await fetch(`${RENDER_BASE}/api/portfolio/delete/${code}`, { method: 'DELETE', keepalive: true });
             if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.detail ?? '削除失敗'); }
           }
-          close(); await loadPortfolio();
-        } catch (e) { err.textContent = e.message; okBtn.disabled = false; }
+          await loadPortfolio();
+        } catch (e) { alert(`処理失敗: ${e.message}`); await loadPortfolio(); }
       };
     }
 
