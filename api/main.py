@@ -391,7 +391,14 @@ def update_watchlist_per():
 
         code = entry["code"]
         try:
-            ticker = yf.Ticker(f"{code}.T")
+            import requests
+            session = requests.Session()
+            session.headers.update({
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Accept-Language": "ja,en-US;q=0.9,en;q=0.8"
+            })
+            ticker = yf.Ticker(f"{code}.T", session=session)
             info = ticker.info
             per = info.get("forwardPE")
             if per is None:
